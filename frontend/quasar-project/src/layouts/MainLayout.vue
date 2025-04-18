@@ -12,7 +12,7 @@
 
         <q-space />
         <q-btn flat label="Prijava" to="/LogIn" />
-        <q-btn flat label="Registracija" />
+        <q-btn flat label="Registracija" to="/Register" />
         <div class="row items-center no-wrap">
           <q-input
             v-model="searchQuery"

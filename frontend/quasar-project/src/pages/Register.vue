@@ -8,7 +8,14 @@
       />
     </div>
     <q-card class="q-pa-lg" style="width: 100%; max-width: 400px">
-      <div class="text-h6 text-center q-mb-md">Postojeći korisnik</div>
+      <div class="text-h6 text-center q-mb-md">Novi korisnik</div>
+      <q-input
+        v-model="fullName"
+        label="Ime i prezime"
+        placeholder="Ime i prezime"
+        class="q-mb-md"
+        outlined
+      />
 
       <q-input
         v-model="email"
@@ -24,14 +31,24 @@
         type="password"
         label="Lozinka"
         placeholder="Lozinka"
+        class="q-mb-md"
+        outlined
+      />
+
+      <q-input
+        v-model="confirmPassword"
+        type="password"
+        label="Ponovite lozinku"
+        placeholder="Lozinka"
         class="q-mb-lg"
         outlined
       />
 
-      <q-btn label="Prijava" color="primary" class="full-width" @click="login" />
+      <q-btn label="Registracija" color="primary" class="full-width" @click="register" />
+
       <div class="text-center q-mt-md">
-        Nemate račun?
-        <router-link to="/Register" class="text-primary">Registrirajte se</router-link>
+        Već posjedujete račun?
+        <router-link to="/login" class="text-primary">Prijavite se</router-link>
       </div>
     </q-card>
   </q-page>
@@ -39,17 +56,26 @@
 
 <script>
 export default {
-  name: 'LoginPage',
+  name: 'RegisterPage',
   data() {
     return {
+      fullName: '',
       email: '',
       password: '',
+      confirmPassword: '',
     }
   },
+
   methods: {
-    login() {
+    register() {
+      if (this.password !== this.confirmPassword) {
+        alert('Lozinke se ne podudaraju!')
+
+        return
+      }
+      console.log('Ime i prezime:', this.fullName)
       console.log('Email:', this.email)
-      console.log('Password:', this.password)
+      console.log('Lozinka:', this.password)
     },
   },
 }
