@@ -7,7 +7,7 @@
         <div class="q-toolbar-title">
           <q-btn flat label="Početna" to="/" />
           <q-btn flat label="Forum" to="/Forum" />
-          <q-btn flat label="Profil" to="/Profil" />
+          <q-btn flat label="Profil" to="/UserProfil" />
         </div>
 
         <q-space />

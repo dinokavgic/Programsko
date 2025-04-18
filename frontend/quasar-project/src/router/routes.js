@@ -6,6 +6,7 @@ const routes = [
       { path: '', component: () => import('pages/IndexPage.vue') },
       { path: 'LogIn', component: () => import('pages/LogIn.vue') },
       { path: 'Register', component: () => import('pages/Register.vue') },
+      { path: 'UserProfil', component: () => import('pages/UserProfil.vue') },
     ],
   },
 
@@ -24,6 +25,11 @@ const routes = [
     path: '/Register',
     name: 'Register',
     component: () => import('pages/Register.vue'),
+  },
+  {
+    path: '/UserProfil',
+    name: 'UserProfil',
+    component: () => import('src/pages/UserProfil.vue'),
   },
 ]
 
