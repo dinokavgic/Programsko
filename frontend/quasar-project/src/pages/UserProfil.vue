@@ -114,7 +114,42 @@
         </q-tab-panel>
 
         <q-tab-panel name="narudzbe">
-          <!-- Prazno za sada -->
+          <div class="q-pa-md">
+            <div class="text-h5 q-mb-md text-center">Moje narudžbe</div>
+            <div v-if="orders.length === 0" class="text-subtitle1 text-center text-grey">
+              Ovdje će se prikazivati vaše narudžbe.
+            </div>
+            <q-scroll-area style="max-width: 100%; height: 200px">
+              <div class="row no-wrap q-gutter-md">
+                <q-card
+                  v-for="order in sortedOrders"
+                  :key="order.id"
+                  class="q-pa-md col-12 col-sm-6 col-md-4"
+                  style="min-width: 250px; max-width: 300px"
+                  bordered
+                  flat
+                >
+                  <div class="text-subtitle1"><strong>Broj narudžbe:</strong> {{ order.id }}</div>
+                  <div class="q-mt-sm">
+                    <div>
+                      <strong>Status narudžbe: </strong>
+                      <span
+                        :class="{
+                          'text-green': order.status === 'Dovršeno',
+                          'text-red': order.status === 'Povučeno',
+                        }"
+                        >{{ order.status }}</span
+                      >
+                    </div>
+                    <div class="q-mt-sm">
+                      <strong>Datum narudžbe:</strong><br />{{ order.date }}<br />{{ order.time }}
+                    </div>
+                    <div class="q-mt-sm"><strong>Ukupni iznos:</strong> {{ order.total }} €</div>
+                  </div>
+                </q-card>
+              </div>
+            </q-scroll-area>
+          </div>
         </q-tab-panel>
       </q-tab-panels>
     </q-card>
@@ -122,7 +157,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 
 const activeTab = ref('informacije')
 const password = ref('')
@@ -132,4 +167,35 @@ const confirmpassword = ref('')
 const showPassword = ref(false)
 const showNewPassword = ref(false)
 const showConfirmPassword = ref(false)
+
+// Privremene narudzbe samo za primjer
+const orders = [
+  {
+    id: '243112',
+    status: 'Dovršeno',
+    date: '9.11.2023.',
+    time: '11:37:10',
+    total: '359,94',
+  },
+  {
+    id: '224557',
+    status: 'Dovršeno',
+    date: '12.5.2023.',
+    time: '12:54:21',
+    total: '21,99',
+  },
+  {
+    id: '212530',
+    status: 'Povučeno',
+    date: '7.3.2023.',
+    time: '17:46:31',
+    total: '125,43',
+  },
+]
+
+const sortedOrders = computed(() => {
+  {
+    return [...orders].sort((a, b) => Number(b.id) - Number(a.id))
+  }
+})
 </script>
