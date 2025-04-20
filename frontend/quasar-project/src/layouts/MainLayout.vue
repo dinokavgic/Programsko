@@ -11,6 +11,8 @@
         </div>
 
         <q-space />
+        <q-btn flat label="Odjava" @click="showLogoutDialog = true" />
+        <LogoutDialog v-model="showLogoutDialog" />
         <q-btn flat label="Prijava" to="/LogIn" />
         <q-btn flat label="Registracija" to="/Register" />
         <div class="row items-center no-wrap">
@@ -83,7 +85,8 @@
 
 <script setup>
 import { ref, computed } from 'vue'
-
+import LogoutDialog from 'src/components/LogoutDialog.vue'
+const showLogoutDialog = ref(false)
 const searchQuery = ref('')
 
 const refreshPage = () => {

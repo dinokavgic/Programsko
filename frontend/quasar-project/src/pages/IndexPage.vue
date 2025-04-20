@@ -41,7 +41,7 @@
             class="col-xs-12 col-sm-6 col-md-4 col-lg-3"
           >
             <q-card class="hoverable-card cursor-pointer">
-              <router-link :to="`/proizvod/${product.id}`" class="no-decoration">
+              <router-link :to="`/Proizvod/${product.id}`" class="no-decoration">
                 <q-img :src="product.image" alt="Fotografija proizvoda" style="height: 150px" />
                 <q-card-section>
                   <div class="text-h6">{{ product.name }}</div>

@@ -7,6 +7,7 @@ const routes = [
       { path: 'LogIn', component: () => import('pages/LogIn.vue') },
       { path: 'Register', component: () => import('pages/Register.vue') },
       { path: 'UserProfil', component: () => import('pages/UserProfil.vue') },
+      { path: 'Proizvod/:id', component: () => import('pages/Proizvod.vue') },
     ],
   },
 
@@ -30,6 +31,10 @@ const routes = [
     path: '/UserProfil',
     name: 'UserProfil',
     component: () => import('src/pages/UserProfil.vue'),
+  },
+  {
+    path: '/Proizvod/:id',
+    component: () => import('src/pages/Proizvod.vue'),
   },
 ]
 
