@@ -8,6 +8,7 @@ const routes = [
       { path: 'Register', component: () => import('pages/Register.vue') },
       { path: 'UserProfil', component: () => import('pages/UserProfil.vue') },
       { path: 'Proizvod/:id', component: () => import('pages/Proizvod.vue') },
+      { path: 'AdminPanel', component: () => import('pages/AdminPanel.vue') },
     ],
   },
 
@@ -35,6 +36,10 @@ const routes = [
   {
     path: '/Proizvod/:id',
     component: () => import('src/pages/Proizvod.vue'),
+  },
+  {
+    path: '/AdminPanel',
+    component: () => import('src/pages/AdminPanel.vue'),
   },
 ]
 

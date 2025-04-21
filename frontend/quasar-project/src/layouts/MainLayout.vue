@@ -2,12 +2,17 @@
   <q-layout view="lHh Lpr lFf">
     <q-header elevated class="bg-white text-black">
       <q-toolbar class="q-px-md q-py-sm">
-        <q-btn flat round icon="local_cafe" size="md" @click="refreshPage" />
+        <q-btn flat round icon="local_cafe" size="md" @click="refreshPage"
+          ><q-tooltip>Osvježi</q-tooltip></q-btn
+        >
 
         <div class="q-toolbar-title">
           <q-btn flat label="Početna" to="/" />
           <q-btn flat label="Forum" to="/Forum" />
           <q-btn flat label="Profil" to="/UserProfil" />
+          <q-btn flat round color="black" icon="vpn_key" size="md" to="/AdminPanel">
+            <q-tooltip>Admin panel</q-tooltip>
+          </q-btn>
         </div>
 
         <q-space />
@@ -26,7 +31,9 @@
           />
           <q-btn unelevated class="bg-green-3 text-black q-mr-sm" label="Pretraži" />
 
-          <q-btn flat round icon="shopping_cart" @click="toggleCart" />
+          <q-btn flat round icon="shopping_cart" @click="toggleCart"
+            ><q-tooltip>Košarica</q-tooltip>
+          </q-btn>
         </div>
       </q-toolbar>
     </q-header>
