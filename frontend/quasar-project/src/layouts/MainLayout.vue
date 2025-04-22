@@ -21,16 +21,6 @@
         <q-btn flat label="Prijava" to="/LogIn" />
         <q-btn flat label="Registracija" to="/Register" />
         <div class="row items-center no-wrap">
-          <q-input
-            v-model="searchQuery"
-            dense
-            outlined
-            placeholder="Pretraži"
-            class="q-mr-sm"
-            style="width: 200px"
-          />
-          <q-btn unelevated class="bg-green-3 text-black q-mr-sm" label="Pretraži" />
-
           <q-btn flat round icon="shopping_cart" @click="toggleCart"
             ><q-tooltip>Košarica</q-tooltip>
           </q-btn>
@@ -80,6 +70,7 @@
             label="Naruči"
             class="full-width"
             :disable="cartItems.length === 0"
+            to="/PredajNarudzbu"
           />
         </div>
       </div>
@@ -94,7 +85,6 @@
 import { ref, computed } from 'vue'
 import LogoutDialog from 'src/components/LogoutDialog.vue'
 const showLogoutDialog = ref(false)
-const searchQuery = ref('')
 
 const refreshPage = () => {
   window.location.reload()

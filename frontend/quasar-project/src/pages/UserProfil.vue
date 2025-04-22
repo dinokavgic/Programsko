@@ -48,7 +48,7 @@
                   <q-input v-model="mjesto" class="full-width" />
                 </q-field>
                 <q-field label="ZIP">
-                  <q-input v-model="zip" class="full-width" type="number" />
+                  <q-input v-model="zip" min="0" max="99999" class="full-width" type="number" />
                 </q-field>
               </div>
 

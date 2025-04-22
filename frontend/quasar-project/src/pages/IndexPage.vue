@@ -25,6 +25,20 @@
             />
           </div>
         </q-expansion-item>
+        <div class="items-center column">
+          <q-input
+            v-model="searchQuery"
+            dense
+            outlined
+            placeholder="Pretraži"
+            class="q-mt-md full-width"
+          />
+          <q-btn
+            unelevated
+            class="bg-green-3 text-black q-mt-md center items-center"
+            label="Pretraži"
+          />
+        </div>
       </div>
 
       <div class="col-10 q-pa-md">
@@ -87,6 +101,7 @@ const selectedCategory = ref('Sve')
 const selectedSort = ref('Zadano')
 const currentPage = ref(1)
 const itemsPerPage = 8
+const searchQuery = ref('')
 
 const filters = ref({
   prviIzbor: false,

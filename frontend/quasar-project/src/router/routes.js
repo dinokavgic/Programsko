@@ -9,6 +9,7 @@ const routes = [
       { path: 'UserProfil', component: () => import('pages/UserProfil.vue') },
       { path: 'Proizvod/:id', component: () => import('pages/Proizvod.vue') },
       { path: 'AdminPanel', component: () => import('pages/AdminPanel.vue') },
+      { path: 'PredajNarudzbu', component: () => import('pages/PredajNarudzbu.vue') },
     ],
   },
 
@@ -40,6 +41,10 @@ const routes = [
   {
     path: '/AdminPanel',
     component: () => import('src/pages/AdminPanel.vue'),
+  },
+  {
+    path: '/PredajNarudzbu',
+    component: () => import('src/pages/PredajNarudzbu.vue'),
   },
 ]
 
