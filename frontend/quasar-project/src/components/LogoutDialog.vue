@@ -35,6 +35,6 @@ const internalModelValue = computed({
 function handleLogout() {
   console.log('Korisnik se odjavio')
   emit('update:modelValue', false)
-  router.push('/')
+  router.push('/Login')
 }
 </script>
