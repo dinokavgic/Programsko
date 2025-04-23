@@ -46,14 +46,35 @@
               <div class="row items-start justify-between">
                 <div class="text-blue text-subtitle2 q-mr-sm">{{ index + 1 }}.</div>
                 <div class="text-subtitle1 text-weight-medium">{{ item.name }}</div>
-                <q-btn icon="close" size="sm" flat dense class="q-ml-auto" />
+                <q-btn
+                  icon="close"
+                  size="sm"
+                  flat
+                  dense
+                  class="q-ml-auto"
+                  @click="removeItem(item.id)"
+                />
               </div>
 
               <div class="row items-center justify-between q-mt-sm">
                 <div class="row items-center">
-                  <q-btn dense size="sm" color="primary" icon="remove" class="q-mr-sm" />
+                  <q-btn
+                    dense
+                    size="sm"
+                    color="primary"
+                    icon="remove"
+                    class="q-mr-sm"
+                    @click="decreaseQuantity(item.id)"
+                  />
                   <div>{{ item.quantity }}</div>
-                  <q-btn dense size="sm" color="primary" icon="add" class="q-ml-sm" />
+                  <q-btn
+                    dense
+                    size="sm"
+                    color="primary"
+                    icon="add"
+                    class="q-ml-sm"
+                    @click="increaseQuantity(item.id)"
+                  />
                 </div>
                 <div class="text-weight-bold">{{ (item.price * item.quantity).toFixed(2) }} €</div>
               </div>
@@ -61,7 +82,7 @@
           </q-scroll-area>
         </div>
 
-        <div class="q-mt-md">
+        <div v-if="cartItems.length > 0" class="q-mt-md">
           <q-separator class="q-my-md" />
           <div class="text-h5 text-center text-weight-bold">{{ cartTotal }} €</div>
           <q-separator class="q-my-md" />
@@ -84,6 +105,11 @@
 <script setup>
 import { ref, computed } from 'vue'
 import LogoutDialog from 'src/components/LogoutDialog.vue'
+import { useCartStore } from '../stores/cart'
+const cartStore = useCartStore()
+const cartItems = computed(() => cartStore.cartItems)
+const cartTotal = computed(() => cartStore.cartTotal)
+
 const showLogoutDialog = ref(false)
 
 const refreshPage = () => {
@@ -94,65 +120,16 @@ const isCartOpen = ref(false)
 const toggleCart = () => {
   isCartOpen.value = !isCartOpen.value
 }
-//Primjerni podaci
-const cartItems = ref([
-  {
-    id: 1,
-    name: 'Prvi proizvod',
-    quantity: 2,
-    price: 139.99,
-  },
-  {
-    id: 2,
-    name: 'Drugi proizvod',
-    quantity: 4,
-    price: 19.99,
-  },
-  {
-    id: 3,
-    name: 'Treći proizvod',
-    quantity: 1,
-    price: 59.99,
-  },
-  {
-    id: 1,
-    name: 'Prvi proizvod',
-    quantity: 2,
-    price: 139.99,
-  },
-  {
-    id: 2,
-    name: 'Drugi proizvod',
-    quantity: 4,
-    price: 19.99,
-  },
-  {
-    id: 3,
-    name: 'Treći proizvod',
-    quantity: 1,
-    price: 59.99,
-  },
-  {
-    id: 1,
-    name: 'Prvi proizvod',
-    quantity: 2,
-    price: 139.99,
-  },
-  {
-    id: 2,
-    name: 'Drugi proizvod',
-    quantity: 4,
-    price: 19.99,
-  },
-  {
-    id: 3,
-    name: 'Treći proizvod',
-    quantity: 1,
-    price: 59.99,
-  },
-])
 
-const cartTotal = computed(() =>
-  cartItems.value.reduce((sum, item) => sum + item.price * item.quantity, 0).toFixed(2)
-)
+const removeItem = (productId) => {
+  cartStore.removeItem(productId)
+}
+
+const increaseQuantity = (productId) => {
+  cartStore.increaseQuantity(productId)
+}
+
+const decreaseQuantity = (productId) => {
+  cartStore.decreaseQuantity(productId)
+}
 </script>

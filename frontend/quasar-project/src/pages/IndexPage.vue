@@ -60,7 +60,7 @@
                 <q-card-section>
                   <div class="text-h6">{{ product.name }}</div>
                   <div class="text-caption">{{ product.description }}</div>
-                  <div class="text-subtitle1 q-mt-sm">{{ product.price }} €</div>
+                  <div class="text-subtitle1 q-mt-sm">{{ product.price.toFixed(2) }} €</div>
                 </q-card-section>
               </router-link>
 
@@ -94,6 +94,7 @@
 
 <script setup>
 import { ref, computed } from 'vue'
+import { useCartStore } from '../stores/cart'
 
 const categories = ['Sve', 'Kave', 'Pjenilice', 'Aparati']
 const sortOptions = ['Zadano', 'Cijena dolje', 'Cijena gore']
@@ -102,7 +103,7 @@ const selectedSort = ref('Zadano')
 const currentPage = ref(1)
 const itemsPerPage = 8
 const searchQuery = ref('')
-
+const cartStore = useCartStore()
 const filters = ref({
   prviIzbor: false,
   drugiIzbor: false,
@@ -190,8 +191,7 @@ function clearFilters() {
   }
 }
 function dodajUKosaricu(product) {
-  console.log('Dodano u košaricu:', product.name)
-  // ovdje ide tvoja logika za košaricu
+  cartStore.addToCart(product)
 }
 </script>
 

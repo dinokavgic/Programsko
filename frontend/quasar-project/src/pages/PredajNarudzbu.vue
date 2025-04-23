@@ -1,6 +1,6 @@
 <template>
-  <q-page class="q-pa-xl bg-grey-2 flex flex-center">
-    <div style="max-width: 60%; width: 100%; height: 80vh; overflow: hidden">
+  <q-page class="q-pa-xl bg-grey-2 flex flex-center" style="overflow-y: auto">
+    <div style="max-width: 60%; width: 100%; height: 80vh">
       <q-stepper v-model="step" flat animated>
         <q-step :name="1" title="Adresa dostave" subtitle="Odaberi opcije" :done="step > 1">
           <q-form @submit.prevent="goToNextStep" ref="addressForm" class="q-gutter-md">
@@ -128,12 +128,67 @@
         </q-step>
 
         <q-step :name="3" title="Pregled narudžbe" subtitle="Završi narudžbu">
-          <div>
+          <div style="max-height: 100%; height: 67vh; overflow-y: auto; padding-right: 8px">
             <h5 class="q-mt-none q-mb-md">Pregled</h5>
-            <q-separator></q-separator>
-            <div class="row q-gutter-sm q-mt-md">
+            <q-separator />
+
+            <div class="q-mt-md q-mb-md">
+              <q-field label="Ime i prezime" stack-label readonly>
+                <div>{{ userData.fullName }}</div>
+              </q-field>
+              <q-field label="Adresa" stack-label readonly>
+                <div>{{ address.adresa }}</div>
+              </q-field>
+              <q-field label="Mjesto" stack-label readonly>
+                <div>{{ address.mjesto }}</div>
+              </q-field>
+              <q-field label="Poštanski broj" stack-label readonly>
+                <div>{{ address.zip }}</div>
+              </q-field>
+              <q-field label="Telefon" stack-label readonly>
+                <div>{{ address.telefon }}</div>
+              </q-field>
+            </div>
+
+            <q-separator />
+
+            <div class="q-mt-md q-mb-md">
+              <div v-for="item in cartItems" :key="item.id" class="q-mb-sm">
+                <div class="row justify-between">
+                  <div>{{ item.name }} x{{ item.quantity }}</div>
+                  <div>{{ (item.price * item.quantity).toFixed(2) }} €</div>
+                </div>
+              </div>
+            </div>
+
+            <q-separator spaced />
+
+            <div class="row justify-between">
+              <div>Ukupno proizvodi:</div>
+              <div>{{ total.toFixed(2) }} €</div>
+            </div>
+            <div class="row justify-between">
+              <div>Poštarina:</div>
+              <div>{{ shipping.toFixed(2) }} €</div>
+            </div>
+            <div class="row justify-between">
+              <div>{{ paymentLabel }}</div>
+              <div>{{ paymentFee.toFixed(2) }} €</div>
+            </div>
+            <div class="row justify-between" v-if="pointsDiscount > 0">
+              <div>Popust (bodovi):</div>
+              <div>- {{ pointsDiscount.toFixed(2) }} €</div>
+            </div>
+
+            <q-separator spaced />
+
+            <div class="row justify-between text-bold">
+              <div>Ukupno za platiti:</div>
+              <div>{{ finalTotal.toFixed(2) }} €</div>
+            </div>
+            <div class="row q-gutter-sm q-mt-lg">
               <q-btn label="Natrag" color="grey" @click="step--" />
-              <q-btn label="Predaj narudžbu" color="green" />
+              <q-btn label="Predaj narudžbu" color="green" @click="submitOrder" />
             </div>
           </div>
         </q-step>
@@ -144,6 +199,7 @@
 
 <script setup>
 import { ref, computed } from 'vue'
+import { useCartStore } from '../stores/cart'
 
 const step = ref(1)
 const useMyAddress = ref(false)
@@ -153,12 +209,38 @@ const ustedjeniIznos = (bodovi * 0.01).toFixed(2)
 const selectedPayment = ref(null)
 const selectedDelivery = ref(null)
 
+const cartStore = useCartStore()
+const cartItems = computed(() => cartStore.cartItems)
+
 const address = ref({
   adresa: '',
   mjesto: '',
   zip: '',
   telefon: '',
 })
+
+const userData = ref({
+  fullName: 'Ivan Horvat',
+})
+
+const shipping = 5.0
+const paymentFee = computed(() => {
+  if (selectedPayment.value === 'cod') return 1.0
+  if (selectedPayment.value === 'paypal') return total.value * 0.03
+
+  return 0
+})
+const pointsDiscount = computed(() => (koristiBodove.value ? bodovi * 0.01 : 0))
+
+const total = computed(() => {
+  if (Array.isArray(cartItems.value)) {
+    return cartItems.value.reduce((sum, item) => sum + (item.price || 0) * (item.quantity || 0), 0)
+  }
+
+  return 0
+})
+
+const finalTotal = computed(() => total.value + shipping + paymentFee.value - pointsDiscount.value)
 
 const isAddressValid = computed(
   () =>
@@ -178,7 +260,7 @@ const paymentOptions = [
   {
     value: 'cod',
     label: 'Plaćanje pouzećem',
-    description: 'gotovina ili kartica +2.50%',
+    description: 'gotovina ili kartica +1,00€',
     icon: 'attach_money',
   },
   {
@@ -189,6 +271,13 @@ const paymentOptions = [
   },
 ]
 
+const paymentLabel = computed(() => {
+  if (selectedPayment.value === 'cod') return 'Način plaćanja (kurir)'
+  if (selectedPayment.value === 'paypal') return 'Način plaćanja (PayPal)'
+
+  return 'Način plaćanja'
+})
+
 const deliveryOptions = [
   {
     value: 'fast',
@@ -197,6 +286,15 @@ const deliveryOptions = [
     icon: 'local_shipping',
   },
 ]
+
+function submitOrder() {
+  console.log('Order submitted', {
+    address: address.value,
+    selectedPayment: selectedPayment.value,
+    selectedDelivery: selectedDelivery.value,
+    finalTotal: finalTotal.value,
+  })
+}
 </script>
 
 <style scoped>

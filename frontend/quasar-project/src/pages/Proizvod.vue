@@ -42,7 +42,7 @@
               <q-btn flat color="primary" icon="remove" @click="decreaseQuantity" />
               <q-input
                 dense
-                v-model="quantity"
+                v-model="kolicina"
                 type="number"
                 style="width: 60px"
                 min="1"
@@ -71,14 +71,15 @@
 <script setup>
 import { ref } from 'vue'
 import { useRoute } from 'vue-router'
+import { useCartStore } from '../stores/cart'
 import AddToCartDialog from 'components/AddToCartDialog.vue'
 
 const route = useRoute()
 const productId = route.params.id
 const slide = ref(0)
-const quantity = ref(1)
+const kolicina = ref(1)
 const addToCartDialog = ref(null)
-
+const cartStore = useCartStore()
 const product = ref({
   id: productId,
   name: 'Naziv proizvoda',
@@ -89,16 +90,22 @@ const product = ref({
 })
 
 function increaseQuantity() {
-  quantity.value++
+  kolicina.value++
 }
 function decreaseQuantity() {
-  if (quantity.value > 1) quantity.value--
+  if (kolicina.value > 1) kolicina.value--
 }
 
 function addToCart() {
-  console.log('Dodano u košaricu:', productId, 'x', quantity.value)
+  cartStore.addToCart({
+    id: product.value.id,
+    name: product.value.name,
+    price: product.value.price,
+    quantity: kolicina.value,
+  })
 
   addToCartDialog.value.open()
-  quantity.value = 1
+
+  kolicina.value = 1
 }
 </script>
