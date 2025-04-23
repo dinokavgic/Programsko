@@ -190,8 +190,8 @@ function clearFilters() {
     treciIzbor: false,
   }
 }
-function dodajUKosaricu(product) {
-  cartStore.addToCart(product)
+function dodajUKosaricu(product, kolicina = 1) {
+  cartStore.addToCart({ ...product, quantity: kolicina })
 }
 </script>
 

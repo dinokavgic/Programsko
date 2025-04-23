@@ -3,13 +3,15 @@ import { ref, computed } from 'vue'
 
 export const useCartStore = defineStore('cart', () => {
   const cartItems = ref([])
-
   const addToCart = (product) => {
+    const quantity = Number(product.quantity) || 1
+    const price = Number(product.price) || 0
+
     const existing = cartItems.value.find((item) => item.id === product.id)
     if (existing) {
-      existing.quantity += product.quantity
+      existing.quantity += quantity
     } else {
-      cartItems.value.push({ ...product })
+      cartItems.value.push({ ...product, price, quantity })
     }
   }
 
