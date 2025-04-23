@@ -8,6 +8,7 @@ const routes = [
       { path: 'Register', component: () => import('pages/Register.vue') },
       { path: 'UserProfil', component: () => import('pages/UserProfil.vue') },
       { path: 'Proizvod/:id', component: () => import('pages/Proizvod.vue') },
+      { path: 'Forum', component: () => import('pages/Forum.vue') },
       { path: 'AdminPanel', component: () => import('pages/AdminPanel.vue') },
       { path: 'PredajNarudzbu', component: () => import('pages/PredajNarudzbu.vue') },
     ],
@@ -37,6 +38,11 @@ const routes = [
   {
     path: '/Proizvod/:id',
     component: () => import('src/pages/Proizvod.vue'),
+  },
+  {
+    path: '/Forum',
+    name: 'Forum',
+    component: () => import('src/pages/Forum.vue'),
   },
   {
     path: '/AdminPanel',
