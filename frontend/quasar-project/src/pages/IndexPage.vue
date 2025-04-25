@@ -109,78 +109,103 @@ const filters = ref({
   drugiIzbor: false,
   treciIzbor: false,
 })
-//primjeri proizvoda
+//primjeri proizvoda - hardcoded
 const products = ref([
   {
     id: 1,
-    name: 'Proizvod 1',
+    name: 'Covfefe 1',
     description: 'Opis 1',
     price: 19.99,
     image: 'https://via.placeholder.com/300x150',
+    category: 'Kave',
   },
   {
     id: 2,
-    name: 'Proizvod 2',
+    name: 'Nescaffe 2',
     description: 'Opis 2',
     price: 29.99,
     image: 'https://via.placeholder.com/300x150',
+    category: 'Kave',
   },
   {
     id: 3,
-    name: 'Proizvod 3',
+    name: 'Kava turska 3',
     description: 'Opis 3',
     price: 39.99,
     image: 'https://via.placeholder.com/300x150',
+    category: 'Kave',
   },
   {
     id: 4,
-    name: 'Proizvod 4',
+    name: 'Pjenilica 4',
     description: 'Opis 4',
     price: 49.99,
     image: 'https://via.placeholder.com/300x150',
+    category: 'Pjenilice',
   },
   {
     id: 5,
-    name: 'Proizvod 5',
+    name: 'Aparat 5',
     description: 'Opis 5',
     price: 59.99,
     image: 'https://via.placeholder.com/300x150',
+    category: 'Aparati',
   },
   {
     id: 6,
-    name: 'Proizvod 6',
+    name: 'Pjenilica 6',
     description: 'Opis 6',
     price: 69.99,
     image: 'https://via.placeholder.com/300x150',
+    category: 'Pjenilice',
   },
   {
     id: 7,
-    name: 'Proizvod 7',
+    name: 'Aparat 7',
     description: 'Opis 7',
     price: 79.99,
     image: 'https://via.placeholder.com/300x150',
+    category: 'Aparati',
   },
   {
-    id: 6,
-    name: 'Proizvod 8',
+    id: 8,
+    name: 'Pjenilica 8',
     description: 'Opis 7',
     price: 69.99,
     image: 'https://via.placeholder.com/300x150',
+    category: 'Pjenilice',
   },
   {
-    id: 7,
-    name: 'Proizvod 9',
+    id: 9,
+    name: 'Aparat 9',
     description: 'Opis 9',
     price: 79.99,
     image: 'https://via.placeholder.com/300x150',
+    category: 'Aparati',
   },
 ])
 
-const maxPages = computed(() => Math.ceil(products.value.length / itemsPerPage))
+const filteredAndSortedProducts = computed(() => {
+  let filtered = products.value
+
+  if (selectedCategory.value !== 'Sve') {
+    filtered = filtered.filter((p) => p.category === selectedCategory.value)
+  }
+
+  if (selectedSort.value === 'Cijena gore') {
+    filtered = filtered.sort((a, b) => b.price - a.price)
+  } else if (selectedSort.value === 'Cijena dolje') {
+    filtered = filtered.sort((a, b) => a.price - b.price)
+  }
+
+  return filtered
+})
+
+const maxPages = computed(() => Math.ceil(filteredAndSortedProducts.value.length / itemsPerPage))
 const paginatedProducts = computed(() => {
   const start = (currentPage.value - 1) * itemsPerPage
 
-  return products.value.slice(start, start + itemsPerPage)
+  return filteredAndSortedProducts.value.slice(start, start + itemsPerPage)
 })
 
 function clearFilters() {
