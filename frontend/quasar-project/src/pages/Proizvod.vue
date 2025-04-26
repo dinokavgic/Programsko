@@ -69,9 +69,10 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { useCartStore } from '../stores/cart'
+import { useProductsStore } from '../stores/products'
 import AddToCartDialog from 'components/AddToCartDialog.vue'
 
 const route = useRoute()
@@ -80,14 +81,8 @@ const slide = ref(0)
 const kolicina = ref(1)
 const addToCartDialog = ref(null)
 const cartStore = useCartStore()
-const product = ref({
-  id: productId,
-  name: 'Naziv proizvoda',
-  category: 'Kategorija',
-  description: 'Neki brzi primjerni tekst u funkciji opisa proizvoda...',
-  price: 29.99,
-  images: [],
-})
+const productsStore = useProductsStore()
+const product = computed(() => productsStore.products.find((p) => p.id == productId))
 
 function increaseQuantity() {
   kolicina.value++

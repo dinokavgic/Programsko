@@ -2,6 +2,8 @@
   <q-page class="q-pa-md bg-grey-2">
     <div class="row">
       <div class="col-2 q-pa-md q-mt-md bg-white self-start">
+        <h6 class="q-ma-md text-center">Mogućnosti</h6>
+        <q-separator class="q-mb-md" />
         <q-select outlined v-model="selectedCategory" :options="categories" label="Kategorije" />
 
         <q-select
@@ -12,7 +14,7 @@
           class="q-mt-md"
         />
 
-        <q-expansion-item icon="filter_list" label="Filtriraj" class="q-mt-md">
+        <!--q-expansion-item icon="filter_list" label="Filtriraj" class="q-mt-md">
           <div class="column">
             <q-checkbox v-model="filters.prviIzbor" label="Prvi izbor" />
             <q-checkbox v-model="filters.drugiIzbor" label="Drugi izbor" />
@@ -24,21 +26,17 @@
               class="q-mt-sm bg-grey-2 self-start self-center"
             />
           </div>
-        </q-expansion-item>
+        </q-expansion-item-->
         <div class="items-center column">
           <q-input
             v-model="searchQuery"
             dense
             outlined
-            placeholder="Pretraži"
+            placeholder="Pretraži proizvode"
             class="q-mt-md full-width"
           />
-          <q-btn
-            unelevated
-            class="bg-green-3 text-black q-mt-md center items-center"
-            label="Pretraži"
-          />
         </div>
+        <q-separator class="q-mt-md" />
       </div>
 
       <div class="col-10 q-pa-md">
@@ -49,33 +47,41 @@
         </div>
 
         <div class="row q-col-gutter-md">
-          <div
-            v-for="product in paginatedProducts"
-            :key="product.id"
-            class="col-xs-12 col-sm-6 col-md-4 col-lg-3"
-          >
-            <q-card class="hoverable-card cursor-pointer">
-              <router-link :to="`/Proizvod/${product.id}`" class="no-decoration">
-                <q-img :src="product.image" alt="Fotografija proizvoda" style="height: 150px" />
-                <q-card-section>
-                  <div class="text-h6">{{ product.name }}</div>
-                  <div class="text-caption">{{ product.description }}</div>
-                  <div class="text-subtitle1 q-mt-sm">{{ product.price.toFixed(2) }} €</div>
-                </q-card-section>
-              </router-link>
+          <template v-if="paginatedProducts.length">
+            <div
+              v-for="product in paginatedProducts"
+              :key="product.id"
+              class="col-xs-12 col-sm-6 col-md-4 col-lg-3"
+            >
+              <q-card class="hoverable-card cursor-pointer">
+                <router-link :to="`/Proizvod/${product.id}`" class="no-decoration">
+                  <q-img :src="product.image" alt="Fotografija proizvoda" style="height: 150px" />
+                  <q-card-section>
+                    <div class="text-h6">{{ product.name }}</div>
+                    <div class="text-caption">{{ product.description }}</div>
+                    <div class="text-subtitle1 q-mt-sm">{{ product.price.toFixed(2) }} €</div>
+                  </q-card-section>
+                </router-link>
 
-              <q-card-actions>
-                <q-btn
-                  flat
-                  unelevated
-                  icon="shopping_cart"
-                  label="Dodaj u košaricu"
-                  @click="dodajUKosaricu(product)"
-                  class="full-width bg-green-3 text-black"
-                />
-              </q-card-actions>
-            </q-card>
-          </div>
+                <q-card-actions>
+                  <q-btn
+                    flat
+                    unelevated
+                    icon="shopping_cart"
+                    label="Dodaj u košaricu"
+                    @click="dodajUKosaricu(product)"
+                    class="full-width bg-green-3 text-black"
+                  />
+                </q-card-actions>
+              </q-card>
+            </div>
+          </template>
+          <template v-else>
+            <div class="full-width text-center q-mt-xl">
+              <q-icon name="sentiment_dissatisfied" size="64px" color="grey" />
+              <div class="text-h6 q-mt-md">Nema pronađenih rezultata</div>
+            </div>
+          </template>
         </div>
 
         <div class="row justify-center q-mt-lg">
@@ -93,8 +99,9 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { useCartStore } from '../stores/cart'
+import { useProductsStore } from '../stores/products'
 
 const categories = ['Sve', 'Kave', 'Pjenilice', 'Aparati']
 const sortOptions = ['Zadano', 'Cijena dolje', 'Cijena gore']
@@ -104,120 +111,62 @@ const currentPage = ref(1)
 const itemsPerPage = 8
 const searchQuery = ref('')
 const cartStore = useCartStore()
-const filters = ref({
+/*const filters = ref({
   prviIzbor: false,
   drugiIzbor: false,
   treciIzbor: false,
-})
-//primjeri proizvoda - hardcoded
-const products = ref([
-  {
-    id: 1,
-    name: 'Covfefe 1',
-    description: 'Opis 1',
-    price: 19.99,
-    image: 'https://via.placeholder.com/300x150',
-    category: 'Kave',
-  },
-  {
-    id: 2,
-    name: 'Nescaffe 2',
-    description: 'Opis 2',
-    price: 29.99,
-    image: 'https://via.placeholder.com/300x150',
-    category: 'Kave',
-  },
-  {
-    id: 3,
-    name: 'Kava turska 3',
-    description: 'Opis 3',
-    price: 39.99,
-    image: 'https://via.placeholder.com/300x150',
-    category: 'Kave',
-  },
-  {
-    id: 4,
-    name: 'Pjenilica 4',
-    description: 'Opis 4',
-    price: 49.99,
-    image: 'https://via.placeholder.com/300x150',
-    category: 'Pjenilice',
-  },
-  {
-    id: 5,
-    name: 'Aparat 5',
-    description: 'Opis 5',
-    price: 59.99,
-    image: 'https://via.placeholder.com/300x150',
-    category: 'Aparati',
-  },
-  {
-    id: 6,
-    name: 'Pjenilica 6',
-    description: 'Opis 6',
-    price: 69.99,
-    image: 'https://via.placeholder.com/300x150',
-    category: 'Pjenilice',
-  },
-  {
-    id: 7,
-    name: 'Aparat 7',
-    description: 'Opis 7',
-    price: 79.99,
-    image: 'https://via.placeholder.com/300x150',
-    category: 'Aparati',
-  },
-  {
-    id: 8,
-    name: 'Pjenilica 8',
-    description: 'Opis 7',
-    price: 69.99,
-    image: 'https://via.placeholder.com/300x150',
-    category: 'Pjenilice',
-  },
-  {
-    id: 9,
-    name: 'Aparat 9',
-    description: 'Opis 9',
-    price: 79.99,
-    image: 'https://via.placeholder.com/300x150',
-    category: 'Aparati',
-  },
-])
+})*/
+const productsStore = useProductsStore()
+const products = computed(() => productsStore.products)
+const searchResults = ref([])
 
-const filteredAndSortedProducts = computed(() => {
-  let filtered = products.value
-
-  if (selectedCategory.value !== 'Sve') {
-    filtered = filtered.filter((p) => p.category === selectedCategory.value)
-  }
-
-  if (selectedSort.value === 'Cijena gore') {
-    filtered = filtered.sort((a, b) => b.price - a.price)
-  } else if (selectedSort.value === 'Cijena dolje') {
-    filtered = filtered.sort((a, b) => a.price - b.price)
-  }
-
-  return filtered
-})
-
-const maxPages = computed(() => Math.ceil(filteredAndSortedProducts.value.length / itemsPerPage))
+const maxPages = computed(() => Math.ceil(searchResults.value.length / itemsPerPage))
 const paginatedProducts = computed(() => {
   const start = (currentPage.value - 1) * itemsPerPage
 
-  return filteredAndSortedProducts.value.slice(start, start + itemsPerPage)
+  return searchResults.value.slice(start, start + itemsPerPage)
 })
 
-function clearFilters() {
+/*function clearFilters() {
   filters.value = {
     prviIzbor: false,
     drugiIzbor: false,
     treciIzbor: false,
   }
-}
+}*/
 function dodajUKosaricu(product, kolicina = 1) {
   cartStore.addToCart({ ...product, quantity: kolicina })
 }
+
+function pretrazi() {
+  let productsToSearch = products.value
+
+  if (selectedCategory.value !== 'Sve') {
+    productsToSearch = productsToSearch.filter((p) => p.category === selectedCategory.value)
+  }
+
+  if (selectedSort.value === 'Cijena gore') {
+    productsToSearch = productsToSearch.sort((a, b) => b.price - a.price)
+  } else if (selectedSort.value === 'Cijena dolje') {
+    productsToSearch = productsToSearch.sort((a, b) => a.price - b.price)
+  }
+
+  if (searchQuery.value.trim() !== '') {
+    const query = searchQuery.value.trim().toLowerCase()
+    productsToSearch = productsToSearch.filter((p) => p.name.toLowerCase().includes(query))
+  }
+
+  searchResults.value = productsToSearch
+  currentPage.value = 1
+}
+
+pretrazi()
+watch(searchQuery, () => {
+  pretrazi()
+})
+watch([selectedCategory, selectedSort], () => {
+  pretrazi()
+})
 </script>
 
 <style scoped>
