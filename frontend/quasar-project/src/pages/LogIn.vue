@@ -38,20 +38,35 @@
   </q-page>
 </template>
 
-<script>
-export default {
-  name: 'LoginPage',
-  data() {
-    return {
-      email: '',
-      password: '',
-    }
-  },
-  methods: {
-    login() {
-      console.log('Email:', this.email)
-      console.log('Password:', this.password)
-    },
-  },
+<script setup>
+import { ref } from 'vue'
+import { useRouter } from 'vue-router'
+import { useAuthStore } from 'stores/auth'
+
+const router = useRouter()
+const auth = useAuthStore()
+
+const email = ref('')
+const password = ref('')
+
+function login() {
+  console.log('Email:', email.value)
+  console.log('Password:', password.value)
+
+  if (email.value === 'korisnik@email.com' && password.value === 'korisnik') {
+    auth.login({
+      username: 'korisnik',
+      isAdmin: false,
+    })
+    router.push('/')
+  } else if (email.value === 'admin@email.com' && password.value === 'admin') {
+    auth.login({
+      username: 'admin',
+      isAdmin: true,
+    })
+    router.push('/')
+  } else {
+    alert('Neispravni podaci. Pokušajte ponovno.')
+  }
 }
 </script>

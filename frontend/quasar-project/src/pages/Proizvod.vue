@@ -56,6 +56,7 @@
                 icon="shopping_cart"
                 label="Dodaj u košaricu"
                 @click="addToCart"
+                :disable="auth.isAdmin"
               />
               <AddToCartDialog ref="addToCartDialog" />
 
@@ -74,6 +75,7 @@ import { useRoute } from 'vue-router'
 import { useCartStore } from '../stores/cart'
 import { useProductsStore } from '../stores/products'
 import AddToCartDialog from 'components/AddToCartDialog.vue'
+import { useAuthStore } from '../stores/auth'
 
 const route = useRoute()
 const productId = route.params.id
@@ -83,6 +85,7 @@ const addToCartDialog = ref(null)
 const cartStore = useCartStore()
 const productsStore = useProductsStore()
 const product = computed(() => productsStore.products.find((p) => p.id == productId))
+const auth = useAuthStore()
 
 function increaseQuantity() {
   kolicina.value++

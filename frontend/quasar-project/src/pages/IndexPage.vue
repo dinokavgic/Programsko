@@ -71,6 +71,7 @@
                     label="Dodaj u košaricu"
                     @click="dodajUKosaricu(product)"
                     class="full-width bg-green-3 text-black"
+                    :disable="auth.isAdmin"
                   />
                 </q-card-actions>
               </q-card>
@@ -102,6 +103,7 @@
 import { ref, computed, watch } from 'vue'
 import { useCartStore } from '../stores/cart'
 import { useProductsStore } from '../stores/products'
+import { useAuthStore } from '../stores/auth'
 
 const categories = ['Sve', 'Kave', 'Pjenilice', 'Aparati']
 const sortOptions = ['Zadano', 'Cijena dolje', 'Cijena gore']
@@ -116,6 +118,7 @@ const cartStore = useCartStore()
   drugiIzbor: false,
   treciIzbor: false,
 })*/
+const auth = useAuthStore()
 const productsStore = useProductsStore()
 const products = computed(() => productsStore.products)
 const searchResults = ref([])

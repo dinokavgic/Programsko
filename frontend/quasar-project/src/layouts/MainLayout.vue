@@ -9,19 +9,27 @@
         <div class="q-toolbar-title">
           <q-btn flat label="Početna" to="/" />
           <q-btn flat label="Forum" to="/Forum" />
-          <q-btn flat label="Profil" to="/UserProfil" />
-          <q-btn flat round color="black" icon="vpn_key" size="md" to="/AdminPanel">
+          <q-btn v-if="auth.isLoggedIn && !auth.isAdmin" flat label="Profil" to="/UserProfil" />
+          <q-btn
+            v-if="auth.isAdmin"
+            flat
+            round
+            color="black"
+            icon="vpn_key"
+            size="md"
+            to="/AdminPanel"
+          >
             <q-tooltip>Admin panel</q-tooltip>
           </q-btn>
         </div>
 
         <q-space />
-        <q-btn flat label="Odjava" @click="showLogoutDialog = true" />
+        <q-btn v-if="auth.isLoggedIn" flat label="Odjava" @click="showLogoutDialog = true" />
         <LogoutDialog v-model="showLogoutDialog" />
-        <q-btn flat label="Prijava" to="/LogIn" />
-        <q-btn flat label="Registracija" to="/Register" />
+        <q-btn v-if="!auth.isLoggedIn" flat label="Prijava" to="/LogIn" />
+        <q-btn v-if="!auth.isLoggedIn" flat label="Registracija" to="/Register" />
         <div class="row items-center no-wrap">
-          <q-btn flat round icon="shopping_cart" @click="toggleCart"
+          <q-btn v-if="!auth.isAdmin" flat round icon="shopping_cart" @click="toggleCart"
             ><q-tooltip>Košarica</q-tooltip>
           </q-btn>
         </div>
@@ -106,11 +114,15 @@
 import { ref, computed } from 'vue'
 import LogoutDialog from 'src/components/LogoutDialog.vue'
 import { useCartStore } from '../stores/cart'
+import { useAuthStore } from '../stores/auth'
+
 const cartStore = useCartStore()
 const cartItems = computed(() => cartStore.cartItems)
 const cartTotal = computed(() => cartStore.cartTotal)
 
 const showLogoutDialog = ref(false)
+
+const auth = useAuthStore()
 
 const refreshPage = () => {
   window.location.reload()

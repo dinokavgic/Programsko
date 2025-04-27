@@ -19,6 +19,7 @@
 <script setup>
 import { useRouter } from 'vue-router'
 import { computed } from 'vue'
+import { useAuthStore } from 'stores/auth'
 
 const props = defineProps({
   modelValue: Boolean,
@@ -26,6 +27,7 @@ const props = defineProps({
 const emit = defineEmits(['update:modelValue'])
 
 const router = useRouter()
+const auth = useAuthStore()
 
 const internalModelValue = computed({
   get: () => props.modelValue,
@@ -34,6 +36,7 @@ const internalModelValue = computed({
 
 function handleLogout() {
   console.log('Korisnik se odjavio')
+  auth.logout()
   emit('update:modelValue', false)
   router.push('/Login')
 }
