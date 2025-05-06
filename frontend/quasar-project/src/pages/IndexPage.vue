@@ -68,10 +68,10 @@
                     flat
                     unelevated
                     icon="shopping_cart"
-                    label="Dodaj u košaricu"
+                    :label="product.price <= 0 ? 'Trenutno nedostupno' : 'Dodaj u košaricu'"
                     @click="dodajUKosaricu(product)"
                     class="full-width bg-green-3 text-black"
-                    :disable="auth.isAdmin"
+                    :disable="auth.isAdmin || product.price <= 0"
                   />
                 </q-card-actions>
               </q-card>
@@ -113,11 +113,7 @@ const currentPage = ref(1)
 const itemsPerPage = 8
 const searchQuery = ref('')
 const cartStore = useCartStore()
-/*const filters = ref({
-  prviIzbor: false,
-  drugiIzbor: false,
-  treciIzbor: false,
-})*/
+
 const auth = useAuthStore()
 const productsStore = useProductsStore()
 const products = computed(() => productsStore.products)
@@ -129,8 +125,12 @@ const paginatedProducts = computed(() => {
 
   return searchResults.value.slice(start, start + itemsPerPage)
 })
-
-/*function clearFilters() {
+/*const filters = ref({
+  prviIzbor: false,
+  drugiIzbor: false,
+  treciIzbor: false,
+})
+function clearFilters() {
   filters.value = {
     prviIzbor: false,
     drugiIzbor: false,

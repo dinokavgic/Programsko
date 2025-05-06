@@ -27,15 +27,33 @@
 
           <div class="col-12 col-md-6 column justify-between">
             <div>
-              <div class="text-h4 q-mb-xs">{{ product.name }}</div>
-              <div class="text-caption text-grey">{{ product.category }}</div>
+              <q-input v-if="editing" v-model="editedProduct.name" label="Naziv" />
+              <div v-else class="text-h4 q-mb-xs">{{ product.name }}</div>
+              <q-select
+                v-if="editing"
+                v-model="editedProduct.category"
+                :options="kategorije"
+                label="Kategorija"
+                emit-value
+                map-options
+                dense
+              />
+              <div v-else class="text-caption text-grey">{{ product.category }}</div>
 
               <q-separator class="q-my-sm" />
-
-              <div class="q-mb-md">{{ product.description }}</div>
+              <q-input v-if="editing" v-model="editedProduct.description" label="Opis" />
+              <div v-else class="q-mb-md">{{ product.description }}</div>
 
               <div class="text-grey text-caption q-mb-xs">Cijena</div>
-              <div class="text-h4 text-bold q-mb-md">{{ product.price }} €</div>
+              <q-input
+                v-if="editing"
+                v-model="editedProduct.price"
+                label="Cijena"
+                type="number"
+                step="0.01"
+                min="0"
+              />
+              <div v-else class="text-h4 text-bold q-mb-md">{{ product.price }} €</div>
             </div>
 
             <div class="row items-center q-gutter-sm">
@@ -54,15 +72,28 @@
                 color="green"
                 class="q-ml-sm"
                 icon="shopping_cart"
-                label="Dodaj u košaricu"
+                :label="product.price <= 0 ? 'Trenutno nedostupno' : 'Dodaj u košaricu'"
                 @click="addToCart"
-                :disable="auth.isAdmin"
+                :disable="auth.isAdmin || product.price <= 0"
               />
               <AddToCartDialog ref="addToCartDialog" />
 
               <CartAnimation />
             </div>
           </div>
+        </div>
+      </q-card>
+      <q-card
+        v-if="auth.isAdmin"
+        class="q-mt-md bg-grey-1 q-pa-md q-rounded-lg shadow-1 flex-center animate__animated animate__fadeInUp"
+      >
+        <div v-if="editing" class="row q-gutter-sm justify-end">
+          <q-btn color="primary" label="Spremi promjene" @click="saveChanges" />
+          <q-btn color="grey" label="Odustani" flat @click="cancelEditing" />
+        </div>
+        <div v-else class="row q-gutter-sm justify-end">
+          <q-btn color="primary" label="Uredi proizvod" @click="startEditing" />
+          <q-btn color="negative" label="Obriši proizvod" @click="deleteProduct" />
         </div>
       </q-card>
     </div>
@@ -85,7 +116,10 @@ const addToCartDialog = ref(null)
 const cartStore = useCartStore()
 const productsStore = useProductsStore()
 const product = computed(() => productsStore.products.find((p) => p.id == productId))
+const kategorije = productsStore.kategorije
 const auth = useAuthStore()
+const editing = ref(false)
+const editedProduct = ref({ ...product.value })
 
 function increaseQuantity() {
   kolicina.value++
@@ -105,5 +139,20 @@ function addToCart() {
   addToCartDialog.value.open()
 
   kolicina.value = 1
+}
+
+function startEditing() {
+  editing.value = true
+  editedProduct.value = { ...product.value, images: [...(product.value.images || [])] }
+}
+
+function cancelEditing() {
+  editing.value = false
+}
+
+function saveChanges() {
+  editedProduct.value.price = parseFloat(editedProduct.value.price)
+  productsStore.updateProduct(editedProduct.value)
+  editing.value = false
 }
 </script>

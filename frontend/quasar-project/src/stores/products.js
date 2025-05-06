@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 export const useProductsStore = defineStore('products', () => {
   const products = ref([
     {
@@ -14,7 +14,7 @@ export const useProductsStore = defineStore('products', () => {
       id: 2,
       name: 'Nescaffe 2',
       description: 'Opis 2',
-      price: 29.99,
+      price: 0.0,
       image: 'https://via.placeholder.com/300x150',
       category: 'Kave',
     },
@@ -75,12 +75,26 @@ export const useProductsStore = defineStore('products', () => {
       category: 'Aparati',
     },
   ])
+  const kategorije = computed(() => {
+    const allCategories = products.value.map((p) => p.category)
+
+    return [...new Set(allCategories)]
+  })
   async function fetchProducts() {
     //naknadna logika za firebase
+  }
+
+  function updateProduct(updatedProduct) {
+    const index = products.value.findIndex((p) => p.id === updatedProduct.id)
+    if (index !== -1) {
+      products.value[index] = { ...updatedProduct }
+    }
   }
 
   return {
     products,
     fetchProducts,
+    kategorije,
+    updateProduct,
   }
 })
