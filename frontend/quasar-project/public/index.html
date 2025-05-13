@@ -78,14 +78,8 @@
             </q-card-section>
           </q-card>
 
-          <q-pagination
-            v-model="page"
-            :max="maxPages"
-            max-pages="5"
-            boundary-numbers
-            direction-links
-            class="justify-center"
-          />
+          <q-pagination v-model="page" :max="maxPages" max-pages="5" boundary-numbers direction-links
+            class="justify-center" />
         </div>
 
         <!-- Desna kolona - bodovi -->
@@ -125,13 +119,8 @@
         <q-card-section>
           <q-input v-model="newArticle.title" label="Naslov" filled class="q-mb-sm" />
           <q-input v-model="newArticle.text" label="Tekst" type="textarea" filled class="q-mb-sm" />
-          <q-select
-            v-model="newArticle.category"
-            :options="['Općenito', 'Iskustva', 'Moji članci']"
-            label="Kategorija"
-            filled
-            class="q-mb-sm"
-          />
+          <q-select v-model="newArticle.category" :options="['Općenito', 'Iskustva', 'Moji članci']" label="Kategorija"
+            filled class="q-mb-sm" />
           <q-file v-model="newArticle.image" label="Slika" filled class="q-mb-sm" />
         </q-card-section>
 
@@ -146,171 +135,171 @@
 
 
 <script setup>
-import { ref, reactive, computed, onMounted } from 'vue'
-import { db, storage } from 'src/firebase'
-import {
-  collection,
-  addDoc,
-  getDocs,
-  query,
-  orderBy,
-  serverTimestamp
-} from 'firebase/firestore'
-import {
-  ref as storageRef,
-  uploadBytes,
-  getDownloadURL
-} from 'firebase/storage'
+  import { ref, reactive, computed, onMounted } from 'vue'
+  import { db, storage } from 'src/firebase'
+  import {
+    collection,
+    addDoc,
+    getDocs,
+    query,
+    orderBy,
+    serverTimestamp
+  } from 'firebase/firestore'
+  import {
+    ref as storageRef,
+    uploadBytes,
+    getDownloadURL
+  } from 'firebase/storage'
 
-const page = ref(1)
-const points = ref(245)
-const showNewArticle = ref(false)
-const showHowToEarn = ref(false)
-const showInfoCard = ref(true)
-const selectedCategory = ref('')
-const activeSort = ref('date_desc')
-const articles = ref([])
-const newComments = reactive({})
-const editingComment = reactive({ articleId: null, index: null, text: '' })
+  const page = ref(1)
+  const points = ref(245)
+  const showNewArticle = ref(false)
+  const showHowToEarn = ref(false)
+  const showInfoCard = ref(true)
+  const selectedCategory = ref('')
+  const activeSort = ref('date_desc')
+  const articles = ref([])
+  const newComments = reactive({})
+  const editingComment = reactive({ articleId: null, index: null, text: '' })
 
-const newArticle = reactive({
-  title: '',
-  text: '',
-  category: '',
-  image: []
-})
-
-const filteredArticles = computed(() => {
-  if (!selectedCategory.value) return articles.value
-
-  return articles.value.filter(
-    (a) => a.category === selectedCategory.value
-  )
-})
-
-const currentArticles = computed(() => {
-  const start = (page.value - 1) * 3
-
-  return filteredArticles.value.slice(start, start + 3)
-})
-
-const maxPages = computed(() =>
-  Math.ceil(filteredArticles.value.length / 3)
-)
-
-function cancelEdit() {
-  editingComment.articleId = null
-  editingComment.index = null
-  editingComment.text = ''
-}
-
-function editComment(articleId, index, text) {
-  editingComment.articleId = articleId
-  editingComment.index = index
-  editingComment.text = text
-}
-
-function saveComment(articleId, index) {
-  const article = articles.value.find((a) => a.id === articleId)
-  if (!article || index < 0 || index >= article.comments.length) return
-
-  article.comments[index].text = editingComment.text
-  cancelEdit()
-}
-
-function deleteComment(articleId, index) {
-  const article = articles.value.find((a) => a.id === articleId)
-  if (!article || index < 0 || index >= article.comments.length) return
-
-  article.comments.splice(index, 1)
-  points.value--
-}
-
-function submitComment(articleId) {
-  const text = newComments[articleId]?.trim()
-  if (!text) return
-
-  const article = articles.value.find((a) => a.id === articleId)
-  if (!article) return
-
-  article.comments.push({
-    author: 'Trenutni Korisnik',
-    text,
-    time: new Date().toLocaleTimeString('hr-HR', {
-      hour: '2-digit',
-      minute: '2-digit'
-    }),
-    date: new Date().toLocaleDateString('hr-HR')
+  const newArticle = reactive({
+    title: '',
+    text: '',
+    category: '',
+    image: []
   })
 
-  newComments[articleId] = ''
-  points.value++
-}
+  const filteredArticles = computed(() => {
+    if (!selectedCategory.value) return articles.value
 
-async function addArticle() {
-  const file = newArticle.image[0]?.__file
-
-
-  let imageUrl = ''
-  if (file) {
-    const storagePath = `forum_images/${Date.now()}_${file.name}`
-    const storageReference = storageRef(storage, storagePath)
-    await uploadBytes(storageReference, file)
-    imageUrl = await getDownloadURL(storageReference)
-  }
-
-  const newDoc = {
-    title: newArticle.title,
-    text: newArticle.text,
-    category: newArticle.category,
-    author: 'Trenutni Korisnik',
-    time: new Date().toLocaleTimeString('hr-HR', {
-      hour: '2-digit',
-      minute: '2-digit'
-    }),
-    date: new Date().toLocaleDateString('hr-HR'),
-    image: imageUrl,
-    comments: [],
-    createdAt: serverTimestamp()
-  }
-
-  const docRef = await addDoc(collection(db, 'articles'), newDoc)
-  articles.value.unshift({ id: docRef.id, ...newDoc })
-  resetNewArticle()
-}
-
-function resetNewArticle() {
-  newArticle.title = ''
-  newArticle.text = ''
-  newArticle.category = ''
-  newArticle.image = []
-  showNewArticle.value = false
-}
-
-function cancelNewArticle() {
-  resetNewArticle()
-}
-
-function handleSort(option) {
-  activeSort.value = option
-  if (option === 'date_desc') {
-    articles.value.sort(
-      (a, b) =>
-        new Date(b.date.split('.').reverse().join('-')) -
-        new Date(a.date.split('.').reverse().join('-'))
+    return articles.value.filter(
+      (a) => a.category === selectedCategory.value
     )
-  } else if (option === 'date_asc') {
-    articles.value.sort(
-      (a, b) =>
-        new Date(a.date.split('.').reverse().join('-')) -
-        new Date(b.date.split('.').reverse().join('-'))
-    )
-  }
-}
+  })
 
-onMounted(async () => {
-  const q = query(collection(db, 'articles'), orderBy('createdAt', 'desc'))
-  const snapshot = await getDocs(q)
-  articles.value = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }))
-})
+  const currentArticles = computed(() => {
+    const start = (page.value - 1) * 3
+
+    return filteredArticles.value.slice(start, start + 3)
+  })
+
+  const maxPages = computed(() =>
+    Math.ceil(filteredArticles.value.length / 3)
+  )
+
+  function cancelEdit() {
+    editingComment.articleId = null
+    editingComment.index = null
+    editingComment.text = ''
+  }
+
+  function editComment(articleId, index, text) {
+    editingComment.articleId = articleId
+    editingComment.index = index
+    editingComment.text = text
+  }
+
+  function saveComment(articleId, index) {
+    const article = articles.value.find((a) => a.id === articleId)
+    if (!article || index < 0 || index >= article.comments.length) return
+
+    article.comments[index].text = editingComment.text
+    cancelEdit()
+  }
+
+  function deleteComment(articleId, index) {
+    const article = articles.value.find((a) => a.id === articleId)
+    if (!article || index < 0 || index >= article.comments.length) return
+
+    article.comments.splice(index, 1)
+    points.value--
+  }
+
+  function submitComment(articleId) {
+    const text = newComments[articleId]?.trim()
+    if (!text) return
+
+    const article = articles.value.find((a) => a.id === articleId)
+    if (!article) return
+
+    article.comments.push({
+      author: 'Trenutni Korisnik',
+      text,
+      time: new Date().toLocaleTimeString('hr-HR', {
+        hour: '2-digit',
+        minute: '2-digit'
+      }),
+      date: new Date().toLocaleDateString('hr-HR')
+    })
+
+    newComments[articleId] = ''
+    points.value++
+  }
+
+  async function addArticle() {
+    const file = newArticle.image[0]?.__file
+
+
+    let imageUrl = ''
+    if (file) {
+      const storagePath = `forum_images/${Date.now()}_${file.name}`
+      const storageReference = storageRef(storage, storagePath)
+      await uploadBytes(storageReference, file)
+      imageUrl = await getDownloadURL(storageReference)
+    }
+
+    const newDoc = {
+      title: newArticle.title,
+      text: newArticle.text,
+      category: newArticle.category,
+      author: 'Trenutni Korisnik',
+      time: new Date().toLocaleTimeString('hr-HR', {
+        hour: '2-digit',
+        minute: '2-digit'
+      }),
+      date: new Date().toLocaleDateString('hr-HR'),
+      image: imageUrl,
+      comments: [],
+      createdAt: serverTimestamp()
+    }
+
+    const docRef = await addDoc(collection(db, 'articles'), newDoc)
+    articles.value.unshift({ id: docRef.id, ...newDoc })
+    resetNewArticle()
+  }
+
+  function resetNewArticle() {
+    newArticle.title = ''
+    newArticle.text = ''
+    newArticle.category = ''
+    newArticle.image = []
+    showNewArticle.value = false
+  }
+
+  function cancelNewArticle() {
+    resetNewArticle()
+  }
+
+  function handleSort(option) {
+    activeSort.value = option
+    if (option === 'date_desc') {
+      articles.value.sort(
+        (a, b) =>
+          new Date(b.date.split('.').reverse().join('-')) -
+          new Date(a.date.split('.').reverse().join('-'))
+      )
+    } else if (option === 'date_asc') {
+      articles.value.sort(
+        (a, b) =>
+          new Date(a.date.split('.').reverse().join('-')) -
+          new Date(b.date.split('.').reverse().join('-'))
+      )
+    }
+  }
+
+  onMounted(async () => {
+    const q = query(collection(db, 'articles'), orderBy('createdAt', 'desc'))
+    const snapshot = await getDocs(q)
+    articles.value = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }))
+  })
 </script>
