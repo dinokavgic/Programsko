@@ -148,6 +148,8 @@
 <script setup>
 import { ref, reactive, computed, onMounted } from 'vue'
 import { db, storage } from 'src/firebase'
+import { doc, updateDoc, arrayUnion } from 'firebase/firestore'
+
 import {
   collection,
   addDoc,
@@ -226,14 +228,11 @@ function deleteComment(articleId, index) {
   points.value--
 }
 
-function submitComment(articleId) {
+async function submitComment(articleId) {
   const text = newComments[articleId]?.trim()
   if (!text) return
 
-  const article = articles.value.find((a) => a.id === articleId)
-  if (!article) return
-
-  article.comments.push({
+  const comment = {
     author: 'Trenutni Korisnik',
     text,
     time: new Date().toLocaleTimeString('hr-HR', {
@@ -241,6 +240,18 @@ function submitComment(articleId) {
       minute: '2-digit'
     }),
     date: new Date().toLocaleDateString('hr-HR')
+  }
+
+  // Lokalno dodavanje komentara
+  const article = articles.value.find((a) => a.id === articleId)
+  if (article) {
+    article.comments.push(comment)
+  }
+
+  // Firebase ažuriranje
+  const articleRef = doc(db, 'articles', articleId)
+  await updateDoc(articleRef, {
+    comments: arrayUnion(comment)
   })
 
   newComments[articleId] = ''
