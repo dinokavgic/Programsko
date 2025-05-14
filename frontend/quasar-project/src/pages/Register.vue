@@ -9,40 +9,55 @@
     </div>
     <q-card class="q-pa-lg" style="width: 100%; max-width: 400px">
       <div class="text-h6 text-center q-mb-md">Novi korisnik</div>
-      <q-input
-        v-model="fullName"
-        label="Ime i prezime"
-        placeholder="Ime i prezime"
-        class="q-mb-md"
-        outlined
-      />
+      <q-form @submit="register" ref="registerForm">
+        <q-input
+          v-model="fullName"
+          label="Ime i prezime"
+          placeholder="Ime i prezime"
+          class="q-mb-md"
+          outlined
+          :rules="[(val) => !!val || 'Ime je obavezno']"
+          hide-bottom-space
+        />
 
-      <q-input
-        v-model="email"
-        type="email"
-        label="Email adresa"
-        placeholder="email@primjer.com"
-        class="q-mb-md"
-        outlined
-      />
+        <q-input
+          v-model="email"
+          type="email"
+          label="Email adresa"
+          placeholder="email@primjer.com"
+          class="q-mb-md"
+          outlined
+          :rules="[
+            (val) => !!val || 'Email je obavezan',
+            (val) => val.includes('@') || 'Email mora sadržavati @',
+          ]"
+          hide-bottom-space
+        />
 
-      <q-input
-        v-model="password"
-        type="password"
-        label="Lozinka"
-        placeholder="Lozinka"
-        class="q-mb-md"
-        outlined
-      />
+        <q-input
+          v-model="password"
+          type="password"
+          label="Lozinka"
+          placeholder="Lozinka"
+          class="q-mb-md"
+          outlined
+          :rules="[
+            (val) => !!val || 'Lozinka je obavezna',
+            (val) => val.length >= 8 || 'Lozinka mora imati barem 8 znakova',
+          ]"
+          hide-bottom-space
+        />
 
-      <q-input
-        v-model="confirmPassword"
-        type="password"
-        label="Ponovite lozinku"
-        placeholder="Lozinka"
-        class="q-mb-lg"
-        outlined
-      />
+        <q-input
+          v-model="confirmPassword"
+          type="password"
+          label="Ponovite lozinku"
+          placeholder="Lozinka"
+          class="q-mb-lg"
+          outlined
+          :rules="[(val) => val === password || 'Lozinke se ne podudaraju']"
+        />
+      </q-form>
 
       <q-btn label="Registracija" color="primary" class="full-width" @click="register" />
 
@@ -55,6 +70,7 @@
 </template>
 
 <script>
+import { useAuthStore } from 'stores/auth'
 export default {
   name: 'RegisterPage',
   data() {
@@ -67,15 +83,18 @@ export default {
   },
 
   methods: {
-    register() {
-      if (this.password !== this.confirmPassword) {
-        alert('Lozinke se ne podudaraju!')
-
-        return
+    async register() {
+      const isValid = await this.$refs.registerForm.validate()
+      if (!isValid) return
+      const authStore = useAuthStore()
+      const newUser = {
+        fullName: this.fullName,
+        email: this.email,
+        isAdmin: false,
       }
-      console.log('Ime i prezime:', this.fullName)
-      console.log('Email:', this.email)
-      console.log('Lozinka:', this.password)
+      authStore.register(newUser)
+      const redirectPath = this.$route.query.redirect || '/'
+      this.$router.push(redirectPath)
     },
   },
 }

@@ -17,7 +17,6 @@
         placeholder="email@primjer.com"
         class="q-mb-md"
         outlined
-        :rules="[(val) => val.includes('@') || 'Neispravan email']"
       />
 
       <q-input
