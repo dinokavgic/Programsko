@@ -149,6 +149,9 @@
 import { ref, reactive, computed, onMounted } from 'vue'
 import { db, storage } from 'src/firebase'
 import { doc, updateDoc, arrayUnion } from 'firebase/firestore'
+import { useAuthStore } from 'stores/auth'
+
+
 
 import {
   collection,
@@ -174,6 +177,9 @@ const activeSort = ref('date_desc')
 const articles = ref([])
 const newComments = reactive({})
 const editingComment = reactive({ articleId: null, index: null, text: '' })
+const authStore = useAuthStore()
+const user = authStore.user
+
 
 const newArticle = reactive({
   title: '',
@@ -232,15 +238,14 @@ async function submitComment(articleId) {
   const text = newComments[articleId]?.trim()
   if (!text) return
 
-  const comment = {
-    author: 'Trenutni Korisnik',
-    text,
-    time: new Date().toLocaleTimeString('hr-HR', {
-      hour: '2-digit',
-      minute: '2-digit'
-    }),
-    date: new Date().toLocaleDateString('hr-HR')
-  }
+ const comment = {
+  author: user.displayName || user.email || 'Korisnik',
+  uid: user.uid,
+  text,
+  likes: 0,
+  time: new Date().toLocaleTimeString('hr-HR', { hour: '2-digit', minute: '2-digit' }),
+  date: new Date().toLocaleDateString('hr-HR')
+}
 
   // Lokalno dodavanje komentara
   const article = articles.value.find((a) => a.id === articleId)
