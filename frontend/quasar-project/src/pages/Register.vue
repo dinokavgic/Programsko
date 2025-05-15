@@ -90,11 +90,16 @@ export default {
       const newUser = {
         fullName: this.fullName,
         email: this.email,
+        password: this.password,
         isAdmin: false,
       }
-      authStore.register(newUser)
-      const redirectPath = this.$route.query.redirect || '/'
-      this.$router.push(redirectPath)
+      try {
+        authStore.register(newUser)
+        const redirectPath = this.$route.query.redirect || '/'
+        this.$router.push(redirectPath)
+      } catch (error) {
+        alert('Registracija nije uspjela.')
+      }
     },
   },
 }

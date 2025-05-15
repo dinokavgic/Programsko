@@ -43,28 +43,19 @@ import { useRouter } from 'vue-router'
 import { useAuthStore } from 'stores/auth'
 
 const router = useRouter()
-const auth = useAuthStore()
+const authStore = useAuthStore()
 
 const email = ref('')
 const password = ref('')
 
-function login() {
-  console.log('Email:', email.value)
-  console.log('Password:', password.value)
+async function login() {
+  try {
+    await authStore.loginWithEmail({ email: email.value, password: password.value })
 
-  if (email.value === 'korisnik@email.com' && password.value === 'korisnik') {
-    auth.login({
-      username: 'korisnik',
-      isAdmin: false,
-    })
-    router.push('/')
-  } else if (email.value === 'admin@email.com' && password.value === 'admin') {
-    auth.login({
-      username: 'admin',
-      isAdmin: true,
-    })
-    router.push('/')
-  } else {
+    const redirectPath = router.currentRoute.value.query.redirect || '/'
+    router.push(redirectPath)
+  } catch (error) {
+    console.error('Login error:', error)
     alert('Neispravni podaci. Pokušajte ponovno.')
   }
 }
