@@ -1,87 +1,42 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
+import { collection, getDocs, getDoc, doc } from 'firebase/firestore'
+import { db } from 'src/firebase'
+
 export const useProductsStore = defineStore('products', () => {
-  const products = ref([
-    {
-      id: 1,
-      name: 'Covfefe 1',
-      description: 'Opis 1',
-      price: 19.99,
-      image: 'https://via.placeholder.com/300x150',
-      category: 'Kave',
-    },
-    {
-      id: 2,
-      name: 'Nescaffe 2',
-      description: 'Opis 2',
-      price: 0.0,
-      image: 'https://via.placeholder.com/300x150',
-      category: 'Kave',
-    },
-    {
-      id: 3,
-      name: 'Kava turska 3',
-      description: 'Opis 3',
-      price: 39.99,
-      image: 'https://via.placeholder.com/300x150',
-      category: 'Kave',
-    },
-    {
-      id: 4,
-      name: 'Pjenilica 4',
-      description: 'Opis 4',
-      price: 49.99,
-      image: 'https://via.placeholder.com/300x150',
-      category: 'Pjenilice',
-    },
-    {
-      id: 5,
-      name: 'Aparat 5',
-      description: 'Opis 5',
-      price: 59.99,
-      image: 'https://via.placeholder.com/300x150',
-      category: 'Aparati',
-    },
-    {
-      id: 6,
-      name: 'Pjenilica 6',
-      description: 'Opis 6',
-      price: 69.99,
-      image: 'https://via.placeholder.com/300x150',
-      category: 'Pjenilice',
-    },
-    {
-      id: 7,
-      name: 'Aparat 7',
-      description: 'Opis 7',
-      price: 79.99,
-      image: 'https://via.placeholder.com/300x150',
-      category: 'Aparati',
-    },
-    {
-      id: 8,
-      name: 'Pjenilica 8',
-      description: 'Opis 7',
-      price: 69.99,
-      image: 'https://via.placeholder.com/300x150',
-      category: 'Pjenilice',
-    },
-    {
-      id: 9,
-      name: 'Aparat 9',
-      description: 'Opis 9',
-      price: 79.99,
-      image: 'https://via.placeholder.com/300x150',
-      category: 'Aparati',
-    },
-  ])
+  const products = ref([])
+  const isLoading = ref(false)
+
   const kategorije = computed(() => {
     const allCategories = products.value.map((p) => p.category)
 
     return [...new Set(allCategories)]
   })
   async function fetchProducts() {
-    //naknadna logika za firebase
+    isLoading.value = true
+    try {
+      const querySnapshot = await getDocs(collection(db, 'products'))
+      const fetchedProducts = []
+
+      querySnapshot.forEach((doc) => {
+        const data = doc.data()
+        fetchedProducts.push({
+          id: doc.id,
+          name: data.name,
+          description: data.description,
+          price: data.price,
+          image: data.images?.[0] || '', // koristi prvu sliku iz niza
+          category: data.category,
+          fullData: data, // opcionalno ako ti treba cijeli objekt
+        })
+      })
+
+      products.value = fetchedProducts
+    } catch (error) {
+      console.error('Greška pri dohvaćanju proizvoda iz Firestorea:', error)
+    } finally {
+      isLoading.value = false
+    }
   }
 
   function updateProduct(updatedProduct) {
@@ -91,10 +46,33 @@ export const useProductsStore = defineStore('products', () => {
     }
   }
 
+  async function fetchProductById(id) {
+    const docRef = doc(db, 'products', id)
+    const snapshot = await getDoc(docRef)
+
+    if (snapshot.exists()) {
+      const data = snapshot.data()
+
+      return {
+        id: snapshot.id,
+        name: data.name || '',
+        description: data.description || '',
+        price: data.price ?? 0,
+        image: data.image || '',
+        images: data.images || [],
+        category: data.category || '',
+      }
+    } else {
+      return null
+    }
+  }
+
   return {
     products,
     fetchProducts,
     kategorije,
     updateProduct,
+    isLoading,
+    fetchProductById,
   }
 })

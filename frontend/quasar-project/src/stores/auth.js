@@ -3,8 +3,10 @@ import { auth, db } from 'src/firebase'
 import { createUserWithEmailAndPassword } from 'firebase/auth'
 import { signInWithEmailAndPassword } from 'firebase/auth'
 import { doc, setDoc, getDoc } from 'firebase/firestore'
+import { useRouter } from 'vue-router'
 
 let autoLogoutTimer = null
+const router = useRouter()
 
 export const useAuthStore = defineStore('auth', {
   state: () => ({
@@ -125,6 +127,7 @@ export const useAuthStore = defineStore('auth', {
       autoLogoutTimer = setTimeout(() => {
         this.logout()
         alert('Admin sesija je istekla nakon 15 minuta.')
+        router.push('/login')
       }, remainingTime)
     },
   },

@@ -70,6 +70,8 @@
             />
 
             <q-uploader
+              ref="uploaderRef"
+              v-model="slike"
               label="Fotografije"
               multiple
               accept="image/*"
@@ -77,9 +79,24 @@
               style="max-width: 300px"
             />
 
+            <q-input
+              filled
+              v-model="novaSlikaUrl"
+              label="URL slike"
+              outlined
+              dense
+              class="q-mt-md"
+              style="max-width: 300px"
+            ></q-input>
+
             <div class="q-mt-md q-gutter-md flex justify-center">
               <div class="q-btn-container">
-                <q-btn label="Spremi" color="primary" class="q-ml-none q-mr-auto" />
+                <q-btn
+                  label="Spremi"
+                  color="primary"
+                  @click="spremiProizvod"
+                  class="q-ml-none q-mr-auto"
+                />
               </div>
             </div>
           </q-form>
@@ -90,11 +107,24 @@
 </template>
 
 <script setup>
+import { db, storage } from 'src/firebase'
+import { collection, addDoc } from 'firebase/firestore'
+import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage'
 import { ref } from 'vue'
+
 const activeTab = ref('dodajProizvod')
+
+const naziv = ref('')
+const opis = ref('')
+const cijena = ref(null)
+const slike = ref([])
+const uploaderRef = ref(null)
+const novaSlikaUrl = ref('')
+const slikeUrls = ref([])
+
 const dodavanjeKategorije = ref(false)
 const novaKategorija = ref('')
-const kategorije = ref(['Kave', 'Aparati', 'Filteri']) //hvatat ce se iz firebase-a, ovo su testni podaci
+const kategorije = ref(['Kave', 'Aparati', 'Filteri'])
 const kategorija = ref(null)
 const dodajKategoriju = () => {
   dodavanjeKategorije.value = true
@@ -108,5 +138,51 @@ const potvrdiKategoriju = () => {
     kategorija.value = nova // automatski odaberi novu
   }
   dodavanjeKategorije.value = false
+}
+
+const spremiProizvod = async () => {
+  const url = novaSlikaUrl.value.trim()
+  if (url) {
+    slikeUrls.value.push(url)
+    novaSlikaUrl.value = ''
+  }
+  try {
+    if (!naziv.value || !opis.value || !cijena.value || !kategorija.value) {
+      alert('Molimo ispunite sva polja.')
+
+      return
+    }
+
+    const imageUrls = []
+    for (const slika of slike.value) {
+      const file = slika.file
+      const fileRef = storageRef(storage, `products/${Date.now()}_${file.name}`)
+      await uploadBytes(fileRef, file)
+      const url = await getDownloadURL(fileRef)
+      imageUrls.push(url)
+    }
+
+    await addDoc(collection(db, 'products'), {
+      name: naziv.value,
+      description: opis.value,
+      price: parseFloat(cijena.value),
+      category: kategorija.value,
+      images: slikeUrls.value,
+      createdAt: new Date(),
+    })
+
+    naziv.value = ''
+    opis.value = ''
+    cijena.value = null
+    kategorija.value = null
+    slike.value = []
+    uploaderRef.value.reset()
+    novaSlikaUrl.value = ''
+
+    alert('Proizvod je uspješno dodan!')
+  } catch (err) {
+    console.error('Greška pri dodavanju proizvoda:', err)
+    alert('Došlo je do greške pri spremanju proizvoda.')
+  }
 }
 </script>

@@ -45,8 +45,11 @@
             {{ selectedCategory !== 'Sve' ? selectedCategory : 'Dobrodošli' }}
           </div>
         </div>
-
-        <div class="row q-col-gutter-md">
+        <div v-if="loading" class="full-width text-center q-my-xl">
+          <q-spinner-dots size="64px" color="primary" />
+          <div class="text-h6 q-mt-md">Učitavanje proizvoda...</div>
+        </div>
+        <div v-else class="row q-col-gutter-md">
           <template v-if="paginatedProducts.length">
             <div
               v-for="product in paginatedProducts"
@@ -58,7 +61,7 @@
                   <q-img :src="product.image" alt="Fotografija proizvoda" style="height: 150px" />
                   <q-card-section>
                     <div class="text-h6">{{ product.name }}</div>
-                    <div class="text-caption">{{ product.description }}</div>
+                    <div class="text-caption">{{ product.category }}</div>
                     <div class="text-subtitle1 q-mt-sm">{{ product.price.toFixed(2) }} €</div>
                   </q-card-section>
                 </router-link>
@@ -100,7 +103,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import { useCartStore } from '../stores/cart'
 import { useProductsStore } from '../stores/products'
 import { useAuthStore } from '../stores/auth'
@@ -113,6 +116,7 @@ const currentPage = ref(1)
 const itemsPerPage = 8
 const searchQuery = ref('')
 const cartStore = useCartStore()
+const loading = ref(true)
 
 const auth = useAuthStore()
 const productsStore = useProductsStore()
@@ -169,6 +173,13 @@ watch(searchQuery, () => {
 })
 watch([selectedCategory, selectedSort], () => {
   pretrazi()
+})
+
+onMounted(async () => {
+  loading.value = true
+  await productsStore.fetchProducts()
+  pretrazi()
+  loading.value = false
 })
 </script>
 

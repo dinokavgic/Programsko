@@ -37,17 +37,14 @@ export default defineRouter(function (/* { store, ssrContext } */) {
   Router.beforeEach((to, from, next) => {
     const auth = useAuthStore()
 
-    // Ako ruta traži logiranog korisnika, ali korisnik nije logiran
     if (to.meta.requiresAuth && !auth.isLoggedIn) {
       return next('/LogIn')
     }
 
-    // Ako ruta traži admina, a korisnik nije admin
     if (to.meta.requiresAdmin && !auth.isAdmin) {
       return next('/')
     }
 
-    // Ako je korisnik logiran, a pokušava na login ili register
     if (to.meta.guestOnly && auth.isLoggedIn) {
       return next('/')
     }

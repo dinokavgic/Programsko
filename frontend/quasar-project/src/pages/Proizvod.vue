@@ -1,5 +1,9 @@
 <template>
-  <div class="bg-grey-2" style="min-height: 93vh; display: grid; place-items: center">
+  <div v-if="loading" class="q-pa-xl text-center">
+    <q-spinner size="50px" color="primary" />
+    <div class="q-mt-md">Učitavanje proizvoda...</div>
+  </div>
+  <div v-else class="bg-grey-2" style="min-height: 93vh; display: grid; place-items: center">
     <div class="" style="max-width: 60%; width: 100%">
       <q-card class="bg-grey-1 q-pa-md q-rounded-lg shadow-2 animate__animated animate__fadeInUp">
         <div class="row q-col-gutter-md">
@@ -101,7 +105,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { useCartStore } from '../stores/cart'
 import { useProductsStore } from '../stores/products'
@@ -115,11 +119,22 @@ const kolicina = ref(1)
 const addToCartDialog = ref(null)
 const cartStore = useCartStore()
 const productsStore = useProductsStore()
-const product = computed(() => productsStore.products.find((p) => p.id == productId))
+
+const product = ref(null)
+const loading = ref(true)
 const kategorije = productsStore.kategorije
 const auth = useAuthStore()
 const editing = ref(false)
 const editedProduct = ref({ ...product.value })
+
+onMounted(async () => {
+  loading.value = true
+  product.value = await productsStore.fetchProductById(productId)
+  if (product.value) {
+    editedProduct.value = { ...product.value }
+  }
+  loading.value = false
+})
 
 function increaseQuantity() {
   kolicina.value++
@@ -153,6 +168,7 @@ function cancelEditing() {
 function saveChanges() {
   editedProduct.value.price = parseFloat(editedProduct.value.price)
   productsStore.updateProduct(editedProduct.value)
+  product.value = { ...editedProduct.value }
   editing.value = false
 }
 </script>
