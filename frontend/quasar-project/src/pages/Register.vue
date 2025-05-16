@@ -98,7 +98,13 @@ export default {
         const redirectPath = this.$route.query.redirect || '/'
         this.$router.push(redirectPath)
       } catch (error) {
-        alert('Registracija nije uspjela.')
+        if (error.code === 'auth/email-already-in-use') {
+          alert('Email adresa je već u upotrebi.')
+        } else {
+          alert('Registracija nije uspjela. ' + error.message)
+        }
+
+        return
       }
     },
   },
