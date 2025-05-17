@@ -193,11 +193,16 @@ function cancelEditing() {
   editing.value = false
 }
 
-function saveChanges() {
+async function saveChanges() {
   editedProduct.value.price = parseFloat(editedProduct.value.price)
-  productsStore.updateProduct(editedProduct.value)
-  product.value = { ...editedProduct.value }
-  editing.value = false
+  try {
+    await productsStore.saveProductChanges(editedProduct.value)
+    product.value = { ...editedProduct.value }
+    editing.value = false
+  } catch (error) {
+    console.error('Spremanje nije uspjelo:', error)
+    // Možeš dodati i obavijest korisniku pomoću npr. `this.$q.notify`
+  }
 }
 
 function isProductDisabled(product) {

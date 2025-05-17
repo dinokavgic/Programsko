@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import { collection, doc, onSnapshot } from 'firebase/firestore'
+import { collection, doc, onSnapshot, updateDoc } from 'firebase/firestore'
 import { db } from 'src/firebase'
 
 export const useProductsStore = defineStore('products', () => {
@@ -76,6 +76,20 @@ export const useProductsStore = defineStore('products', () => {
     return unsubscribe
   }
 
+  async function saveProductChanges(updatedProduct) {
+    const docRef = doc(db, 'products', updatedProduct.id)
+    const { ...rest } = updatedProduct
+    try {
+      await updateDoc(docRef, {
+        ...rest,
+      })
+      updateProduct(updatedProduct)
+    } catch (err) {
+      console.error('Greška pri spremanju proizvoda:', err)
+      throw err
+    }
+  }
+
   return {
     products,
     subscribeProducts,
@@ -83,5 +97,6 @@ export const useProductsStore = defineStore('products', () => {
     updateProduct,
     isLoading,
     subscribeProductById,
+    saveProductChanges,
   }
 })
