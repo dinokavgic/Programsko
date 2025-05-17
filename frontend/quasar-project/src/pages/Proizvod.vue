@@ -59,9 +59,20 @@
               />
               <div v-else class="text-h4 text-bold q-mb-md">{{ product.price }} €</div>
             </div>
-
+            <div
+              v-if="product.inStock !== undefined && product.inStock > 0 && product.inStock < 10"
+              class="text-negative q-mt-xs"
+            >
+              Požuri, ostalo na stanju samo {{ product.inStock }} artikala
+            </div>
             <div class="row items-center q-gutter-sm">
-              <q-btn flat color="primary" icon="remove" @click="decreaseQuantity" />
+              <q-btn
+                flat
+                color="primary"
+                icon="remove"
+                @click="decreaseQuantity"
+                :disable="isProductDisabled(product)"
+              />
               <q-input
                 dense
                 v-model="kolicina"
@@ -70,15 +81,22 @@
                 min="1"
                 max="99"
                 :rules="[(val) => (val >= 1 && val <= 99) || 'Min 1, Max 99']"
+                :disable="isProductDisabled(product)"
               />
-              <q-btn flat color="primary" icon="add" @click="increaseQuantity" />
+              <q-btn
+                flat
+                color="primary"
+                icon="add"
+                @click="increaseQuantity"
+                :disable="isProductDisabled(product)"
+              />
               <q-btn
                 color="green"
                 class="q-ml-sm"
                 icon="shopping_cart"
-                :label="product.price <= 0 ? 'Trenutno nedostupno' : 'Dodaj u košaricu'"
+                :label="getButtonLabel(product)"
                 @click="addToCart"
-                :disable="auth.isAdmin || product.price <= 0"
+                :disable="isProductDisabled(product)"
               />
               <AddToCartDialog ref="addToCartDialog" />
 
@@ -105,7 +123,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { useCartStore } from '../stores/cart'
 import { useProductsStore } from '../stores/products'
@@ -127,13 +145,23 @@ const auth = useAuthStore()
 const editing = ref(false)
 const editedProduct = ref({ ...product.value })
 
-onMounted(async () => {
+let unsubscribe = null
+
+onMounted(() => {
   loading.value = true
-  product.value = await productsStore.fetchProductById(productId)
-  if (product.value) {
-    editedProduct.value = { ...product.value }
+  unsubscribe = productsStore.subscribeProductById(productId, (updatedProduct) => {
+    product.value = updatedProduct
+    if (updatedProduct) {
+      editedProduct.value = { ...updatedProduct }
+    }
+    loading.value = false
+  })
+})
+
+onUnmounted(() => {
+  if (typeof unsubscribe === 'function') {
+    unsubscribe()
   }
-  loading.value = false
 })
 
 function increaseQuantity() {
@@ -170,5 +198,13 @@ function saveChanges() {
   productsStore.updateProduct(editedProduct.value)
   product.value = { ...editedProduct.value }
   editing.value = false
+}
+
+function isProductDisabled(product) {
+  return auth.isAdmin || !product.inStock || product.inStock <= 0 || product.price <= 0
+}
+
+function getButtonLabel(product) {
+  return isProductDisabled(product) ? 'Trenutno nedostupno' : 'Dodaj u košaricu'
 }
 </script>

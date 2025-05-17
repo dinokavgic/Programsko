@@ -65,16 +65,15 @@
                     <div class="text-subtitle1 q-mt-sm">{{ product.price.toFixed(2) }} €</div>
                   </q-card-section>
                 </router-link>
-
                 <q-card-actions>
                   <q-btn
                     flat
                     unelevated
                     icon="shopping_cart"
-                    :label="product.price <= 0 ? 'Trenutno nedostupno' : 'Dodaj u košaricu'"
+                    :label="getButtonLabel(product)"
                     @click="dodajUKosaricu(product)"
                     class="full-width bg-green-3 text-black"
-                    :disable="auth.isAdmin || product.price <= 0"
+                    :disable="isProductDisabled(product)"
                   />
                 </q-card-actions>
               </q-card>
@@ -103,7 +102,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { useCartStore } from '../stores/cart'
 import { useProductsStore } from '../stores/products'
 import { useAuthStore } from '../stores/auth'
@@ -175,12 +174,30 @@ watch([selectedCategory, selectedSort], () => {
   pretrazi()
 })
 
-onMounted(async () => {
+let unsubscribe = null
+
+onMounted(() => {
   loading.value = true
-  await productsStore.fetchProducts()
-  pretrazi()
-  loading.value = false
+  unsubscribe = productsStore.subscribeProducts((updatedProducts) => {
+    productsStore.products = updatedProducts
+    pretrazi(updatedProducts)
+    loading.value = false
+  })
 })
+
+onUnmounted(() => {
+  if (typeof unsubscribe === 'function') {
+    unsubscribe()
+  }
+})
+
+function isProductDisabled(product) {
+  return auth.isAdmin || !product.inStock || product.inStock <= 0 || product.price <= 0
+}
+
+function getButtonLabel(product) {
+  return isProductDisabled(product) ? 'Trenutno nedostupno' : 'Dodaj u košaricu'
+}
 </script>
 
 <style scoped>

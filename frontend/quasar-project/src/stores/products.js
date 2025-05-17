@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import { collection, getDocs, getDoc, doc } from 'firebase/firestore'
+import { collection, doc, onSnapshot } from 'firebase/firestore'
 import { db } from 'src/firebase'
 
 export const useProductsStore = defineStore('products', () => {
@@ -12,31 +12,30 @@ export const useProductsStore = defineStore('products', () => {
 
     return [...new Set(allCategories)]
   })
-  async function fetchProducts() {
+  async function subscribeProducts(callback) {
     isLoading.value = true
-    try {
-      const querySnapshot = await getDocs(collection(db, 'products'))
-      const fetchedProducts = []
-
+    const colRef = collection(db, 'products')
+    const unsubscribe = onSnapshot(colRef, (querySnapshot) => {
+      const updatedProducts = []
       querySnapshot.forEach((doc) => {
         const data = doc.data()
-        fetchedProducts.push({
+        updatedProducts.push({
           id: doc.id,
           name: data.name,
           description: data.description,
           price: data.price,
-          image: data.images?.[0] || '', // koristi prvu sliku iz niza
+          image: data.images?.[0] || '',
           category: data.category,
-          fullData: data, // opcionalno ako ti treba cijeli objekt
+          inStock: data.inStock,
+          fullData: data,
         })
       })
 
-      products.value = fetchedProducts
-    } catch (error) {
-      console.error('Greška pri dohvaćanju proizvoda iz Firestorea:', error)
-    } finally {
-      isLoading.value = false
-    }
+      callback(updatedProducts)
+    })
+    isLoading.value = false
+
+    return unsubscribe
   }
 
   function updateProduct(updatedProduct) {
@@ -46,33 +45,43 @@ export const useProductsStore = defineStore('products', () => {
     }
   }
 
-  async function fetchProductById(id) {
+  async function subscribeProductById(id, callback) {
     const docRef = doc(db, 'products', id)
-    const snapshot = await getDoc(docRef)
+    const unsubscribe = onSnapshot(
+      docRef,
+      (docSnap) => {
+        if (docSnap.exists()) {
+          const data = docSnap.data()
 
-    if (snapshot.exists()) {
-      const data = snapshot.data()
-
-      return {
-        id: snapshot.id,
-        name: data.name || '',
-        description: data.description || '',
-        price: data.price ?? 0,
-        image: data.image || '',
-        images: data.images || [],
-        category: data.category || '',
+          callback({
+            id: docSnap.id,
+            name: data.name || '',
+            description: data.description || '',
+            price: data.price ?? 0,
+            image: data.image || '',
+            images: data.images || [],
+            category: data.category || '',
+            inStock: data.inStock ?? 0,
+          })
+        } else {
+          callback(null)
+        }
+      },
+      (error) => {
+        console.error('Greška u onSnapshot:', error)
+        callback(null)
       }
-    } else {
-      return null
-    }
+    )
+
+    return unsubscribe
   }
 
   return {
     products,
-    fetchProducts,
+    subscribeProducts,
     kategorije,
     updateProduct,
     isLoading,
-    fetchProductById,
+    subscribeProductById,
   }
 })

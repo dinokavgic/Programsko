@@ -77,15 +77,19 @@
               accept="image/*"
               auto-upload="false"
               style="max-width: 300px"
+              @added="dodajSlike"
             />
 
             <q-input
               filled
-              v-model="novaSlikaUrl"
-              label="URL slike"
+              v-model="stanje"
+              label="Zaliha"
+              type="number"
+              step="1"
               outlined
               dense
               class="q-mt-md"
+              min="0"
               style="max-width: 300px"
             ></q-input>
 
@@ -107,9 +111,8 @@
 </template>
 
 <script setup>
-import { db, storage } from 'src/firebase'
+import { db } from 'src/firebase'
 import { collection, addDoc } from 'firebase/firestore'
-import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage'
 import { ref } from 'vue'
 
 const activeTab = ref('dodajProizvod')
@@ -117,10 +120,9 @@ const activeTab = ref('dodajProizvod')
 const naziv = ref('')
 const opis = ref('')
 const cijena = ref(null)
-const slike = ref([])
+const slikeFiles = ref([])
 const uploaderRef = ref(null)
-const novaSlikaUrl = ref('')
-const slikeUrls = ref([])
+const stanje = ref(null)
 
 const dodavanjeKategorije = ref(false)
 const novaKategorija = ref('')
@@ -139,35 +141,43 @@ const potvrdiKategoriju = () => {
   }
   dodavanjeKategorije.value = false
 }
+const dodajSlike = (files) => {
+  slikeFiles.value.push(...files)
+}
+function toBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.readAsDataURL(file)
+    reader.onload = () => resolve(reader.result)
+    reader.onerror = (error) => reject(error)
+  })
+}
 
 const spremiProizvod = async () => {
-  const url = novaSlikaUrl.value.trim()
-  if (url) {
-    slikeUrls.value.push(url)
-    novaSlikaUrl.value = ''
-  }
   try {
-    if (!naziv.value || !opis.value || !cijena.value || !kategorija.value) {
+    const stanjeInt = Math.floor(Number(stanje.value))
+    if (
+      !naziv.value ||
+      !opis.value ||
+      !cijena.value ||
+      !kategorija.value ||
+      stanje.value === null ||
+      isNaN(stanjeInt)
+    ) {
       alert('Molimo ispunite sva polja.')
 
       return
     }
 
-    const imageUrls = []
-    for (const slika of slike.value) {
-      const file = slika.file
-      const fileRef = storageRef(storage, `products/${Date.now()}_${file.name}`)
-      await uploadBytes(fileRef, file)
-      const url = await getDownloadURL(fileRef)
-      imageUrls.push(url)
-    }
+    const imageBase64List = await Promise.all(slikeFiles.value.map((file) => toBase64(file)))
 
     await addDoc(collection(db, 'products'), {
       name: naziv.value,
       description: opis.value,
       price: parseFloat(cijena.value),
       category: kategorija.value,
-      images: slikeUrls.value,
+      images: imageBase64List,
+      inStock: stanjeInt,
       createdAt: new Date(),
     })
 
@@ -175,9 +185,9 @@ const spremiProizvod = async () => {
     opis.value = ''
     cijena.value = null
     kategorija.value = null
-    slike.value = []
+    slikeFiles.value = []
+    stanje.value = null
     uploaderRef.value.reset()
-    novaSlikaUrl.value = ''
 
     alert('Proizvod je uspješno dodan!')
   } catch (err) {
