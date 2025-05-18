@@ -69,7 +69,6 @@ export const useAuthStore = defineStore('auth', {
           newUser.password
         )
         const user = userCredential.user
-        this.user = user
 
         await setDoc(doc(db, 'users', user.uid), {
           fullName: newUser.fullName,
@@ -77,11 +76,27 @@ export const useAuthStore = defineStore('auth', {
           isAdmin: false,
           createdAt: new Date(),
         })
+
+        const userDocRef = doc(db, 'users', user.uid)
+        const userSnapshot = await getDoc(userDocRef)
+
+        if (!userSnapshot.exists()) {
+          throw new Error('Korisnički podaci nisu pronađeni u bazi nakon registracije.')
+        }
+
+        const userData = userSnapshot.data()
+
+        const loggedInUser = {
+          uid: user.uid,
+          email: user.email,
+          fullName: userData.fullName,
+          isAdmin: userData.isAdmin || false,
+        }
+        this.login(loggedInUser)
       } catch (error) {
         console.error('Greška pri registraciji:', error.message)
         throw error
       }
-      this.login(newUser)
     },
     login(userData) {
       this.user = userData

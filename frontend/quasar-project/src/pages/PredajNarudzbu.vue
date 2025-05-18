@@ -9,6 +9,15 @@
             <q-toggle v-model="useMyAddress" label="Koristi moju spremljenu adresu." />
             <div class="row">
               <q-input
+                class="col"
+                v-model="address.fullName"
+                label="Ime i prezime"
+                outlined
+                required
+              />
+            </div>
+            <div class="row">
+              <q-input
                 class="col q-mr-md"
                 v-model="address.adresa"
                 label="Adresa"
@@ -65,12 +74,13 @@
               :key="option.value"
               :class="{
                 'bg-blue-1': selectedPayment === option.value,
-                'cursor-pointer': true,
+                'cursor-pointer': option.value !== 'paypal',
                 'border-selected': selectedPayment === option.value,
+                'disabled-card': option.value === 'paypal',
               }"
               flat
               bordered
-              @click="selectedPayment = option.value"
+              @click="option.value !== 'paypal' && (selectedPayment = option.value)"
             >
               <q-card-section class="row items-center">
                 <q-icon :name="option.icon" size="md" class="q-mr-md" />
@@ -113,7 +123,7 @@
           <q-separator class="q-mb-xs"></q-separator>
           <q-toggle
             v-model="koristiBodove"
-            :label="`Koristi moje bodove za kupnju (${bodovi}) i uštedi (${ustedjeniIznos} €).`"
+            :label="`Koristi moje bodove za kupnju (${bodovi}) i uštedi (${bodovi * (0.01).toFixed(2)} €).`"
           />
 
           <div class="row q-gutter-sm q-mt-md">
@@ -134,7 +144,7 @@
 
             <div class="q-mt-md q-mb-md">
               <q-field label="Ime i prezime" stack-label readonly>
-                <div>{{ userData.fullName }}</div>
+                <div>{{ address.fullName }}</div>
               </q-field>
               <q-field label="Adresa" stack-label readonly>
                 <div>{{ address.adresa }}</div>
@@ -188,8 +198,14 @@
             </div>
             <div class="row q-gutter-sm q-mt-lg">
               <q-btn label="Natrag" color="grey" @click="step--" />
-              <q-btn label="Predaj narudžbu" color="green" @click="submitOrder" />
+              <q-btn
+                label="Predaj narudžbu"
+                color="green"
+                @click="submitOrder"
+                :disable="cartItems.length === 0"
+              />
             </div>
+            <OrderSuccessDialog v-if="showSuccessDialog" @close="handleDialogClose" />
           </div>
         </q-step>
       </q-stepper>
@@ -198,21 +214,32 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted, watch, reactive } from 'vue'
 import { useCartStore } from '../stores/cart'
+import { doc, getDoc, updateDoc, collection, addDoc, serverTimestamp } from 'firebase/firestore'
+import { useAuthStore } from 'stores/auth'
+import { db } from 'src/firebase'
+import { useRouter } from 'vue-router'
+import OrderSuccessDialog from 'components/OrderSuccessDialog.vue'
 
 const step = ref(1)
-const useMyAddress = ref(false)
 const koristiBodove = ref(false)
-const bodovi = 245
-const ustedjeniIznos = (bodovi * 0.01).toFixed(2)
+const bodovi = computed(() => userData.value.points || 0)
+
 const selectedPayment = ref(null)
 const selectedDelivery = ref(null)
 
 const cartStore = useCartStore()
 const cartItems = computed(() => cartStore.cartItems)
 
-const address = ref({
+const authStore = useAuthStore()
+const user = authStore.user
+const router = useRouter()
+const showSuccessDialog = ref(false)
+
+const useMyAddress = ref(false)
+const address = reactive({
+  fullName: '',
   adresa: '',
   mjesto: '',
   zip: '',
@@ -220,7 +247,12 @@ const address = ref({
 })
 
 const userData = ref({
-  fullName: 'Ivan Horvat',
+  fullName: '',
+  telefon: '',
+  adresa: '',
+  mjesto: '',
+  zip: '',
+  points: 0,
 })
 
 const shipping = 5.0
@@ -230,7 +262,14 @@ const paymentFee = computed(() => {
 
   return 0
 })
-const pointsDiscount = computed(() => (koristiBodove.value ? bodovi * 0.01 : 0))
+const pointsDiscount = computed(() => {
+  const maxDiscount = total.value
+  const userDiscount = bodovi.value * 0.01
+
+  return koristiBodove.value ? Math.min(userDiscount, maxDiscount) : 0
+})
+
+const iskoristeniBodovi = computed(() => Math.floor(pointsDiscount.value / 0.01))
 
 const total = computed(() => {
   if (Array.isArray(cartItems.value)) {
@@ -244,10 +283,11 @@ const finalTotal = computed(() => total.value + shipping + paymentFee.value - po
 
 const isAddressValid = computed(
   () =>
-    address.value.adresa.trim() !== '' &&
-    address.value.mjesto.trim() !== '' &&
-    address.value.zip.trim() !== '' &&
-    address.value.telefon.trim() !== ''
+    address.fullName.trim() !== '' &&
+    address.adresa.trim() !== '' &&
+    address.mjesto.trim() !== '' &&
+    address.zip.trim() !== '' &&
+    address.telefon.trim() !== ''
 )
 
 function goToNextStep() {
@@ -265,7 +305,7 @@ const paymentOptions = [
   },
   {
     value: 'paypal',
-    label: 'PayPal',
+    label: 'PayPal / nedostupno',
     description: '+3.00% provizije',
     icon: 'account_balance_wallet',
   },
@@ -287,19 +327,122 @@ const deliveryOptions = [
   },
 ]
 
-function submitOrder() {
-  console.log('Order submitted', {
-    address: address.value,
-    selectedPayment: selectedPayment.value,
-    selectedDelivery: selectedDelivery.value,
-    finalTotal: finalTotal.value,
-  })
+async function submitOrder() {
+  if (koristiBodove.value && user?.uid) {
+    const userDocRef = doc(db, 'users', user.uid)
+    const noviBrojBodova = Math.max(0, bodovi.value - iskoristeniBodovi.value)
+
+    try {
+      await updateDoc(userDocRef, {
+        points: noviBrojBodova,
+      })
+      console.log(`Ažurirani bodovi korisnika: ${noviBrojBodova}`)
+    } catch (err) {
+      console.error('Greška pri ažuriranju bodova:', err)
+    }
+  }
+  const orderData = {
+    userId: user.uid,
+    timestamp: serverTimestamp(),
+    paymentMethod: selectedPayment.value,
+    deliveryMethod: selectedDelivery.value,
+    totalPrice: finalTotal.value,
+    pointsUsed: koristiBodove.value ? bodovi.value : 0,
+    address: {
+      fullName: address.fullName,
+      adresa: address.adresa,
+      mjesto: address.mjesto,
+      zip: address.zip,
+      telefon: address.telefon,
+    },
+    items: cartItems.value.map((item) => ({
+      id: item.id,
+      name: item.name,
+      price: item.price,
+      quantity: item.quantity,
+    })),
+    status: 'U obradi',
+  }
+  try {
+    await addDoc(collection(db, 'orders'), orderData)
+    for (const item of cartItems.value) {
+      const productRef = doc(db, 'products', item.id)
+      try {
+        const productSnap = await getDoc(productRef)
+        if (productSnap.exists()) {
+          const currentStock = productSnap.data().inStock ?? 0
+          const newStock = Math.max(0, currentStock - item.quantity)
+
+          await updateDoc(productRef, {
+            inStock: newStock,
+          })
+        }
+      } catch (err) {
+        console.error(`Greška pri ažuriranju zalihe za proizvod ${item.id}:`, err)
+      }
+    }
+    showSuccessDialog.value = true
+  } catch (error) {
+    console.error('Greška pri spremanju narudžbe:', error)
+    alert('Došlo je do pogreške. Pokušajte ponovno.')
+  }
 }
+
+function handleDialogClose() {
+  cartStore.clearCart()
+  router.push('/')
+}
+
+onMounted(async () => {
+  if (user?.uid) {
+    const userDocRef = doc(db, 'users', user.uid)
+    const userSnap = await getDoc(userDocRef)
+
+    if (userSnap.exists()) {
+      const data = userSnap.data()
+      userData.value = {
+        fullName: data.fullName || '',
+        telefon: data.telefon || '',
+        adresa: data.adresa || '',
+        mjesto: data.mjesto || '',
+        zip: data.zip || '',
+        points: data.points || 0,
+      }
+    }
+  }
+})
+
+watch(useMyAddress, (val) => {
+  if (val) {
+    address.fullName = userData.value.fullName
+    address.telefon = userData.value.telefon
+    address.adresa = userData.value.adresa
+    address.mjesto = userData.value.mjesto
+    address.zip = userData.value.zip
+  } else {
+    address.fullName = ''
+    address.telefon = ''
+    address.adresa = ''
+    address.mjesto = ''
+    address.zip = ''
+  }
+})
+
+watch(cartItems, (newItems) => {
+  if (newItems.length === 0) {
+    alert('Košarica je prazna. Preusmjeravamo vas na početnu stranicu.')
+    router.push('/')
+  }
+})
 </script>
 
 <style scoped>
 .q-stepper {
   max-width: 900;
   margin: auto;
+}
+.disabled-card {
+  opacity: 0.5;
+  pointer-events: none;
 }
 </style>

@@ -75,6 +75,7 @@
               label="Fotografije"
               multiple
               accept="image/*"
+              :filter="filterSlike"
               auto-upload="false"
               style="max-width: 300px"
               @added="dodajSlike"
@@ -194,5 +195,25 @@ const spremiProizvod = async () => {
     console.error('Greška pri dodavanju proizvoda:', err)
     alert('Došlo je do greške pri spremanju proizvoda.')
   }
+}
+
+const filterSlike = (files) => {
+  const maxSize = 1024 * 1024 // 1MB
+  const valid = []
+  const tooBig = []
+
+  files.forEach((file) => {
+    if (file.size <= maxSize) {
+      valid.push(file)
+    } else {
+      tooBig.push(file.name)
+    }
+  })
+
+  if (tooBig.length) {
+    alert(`Sljedeće slike su veće od 1MB i neće biti dodane:\n${tooBig.join(', ')}`)
+  }
+
+  return valid
 }
 </script>

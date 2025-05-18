@@ -151,13 +151,12 @@
                         :class="{
                           'text-green': order.status === 'Dovršeno',
                           'text-red': order.status === 'Povučeno',
+                          'text-warning': order.status === 'U obradi' || order.status === 'pending',
                         }"
                         >{{ order.status }}</span
                       >
                     </div>
-                    <div class="q-mt-sm">
-                      <strong>Datum narudžbe:</strong><br />{{ order.date }}<br />{{ order.time }}
-                    </div>
+                    <div class="q-mt-sm"><strong>Datum narudžbe: </strong>{{ order.time }}</div>
                     <div class="q-mt-sm"><strong>Ukupni iznos:</strong> {{ order.total }} €</div>
                   </div>
                 </q-card>
@@ -173,7 +172,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useAuthStore } from 'stores/auth'
-import { doc, getDoc, updateDoc } from 'firebase/firestore'
+import { doc, getDoc, updateDoc, collection, query, where, getDocs } from 'firebase/firestore'
 import { reauthenticateWithCredential, EmailAuthProvider, updatePassword } from 'firebase/auth'
 import { db, auth } from 'src/firebase'
 
@@ -196,35 +195,9 @@ const showPassword = ref(false)
 const showNewPassword = ref(false)
 const showConfirmPassword = ref(false)
 
-// Privremene narudzbe samo za primjer
-const orders = [
-  {
-    id: '243112',
-    status: 'Dovršeno',
-    date: '9.11.2023.',
-    time: '11:37:10',
-    total: '359,94',
-  },
-  {
-    id: '224557',
-    status: 'Dovršeno',
-    date: '12.5.2023.',
-    time: '12:54:21',
-    total: '21,99',
-  },
-  {
-    id: '212530',
-    status: 'Povučeno',
-    date: '7.3.2023.',
-    time: '17:46:31',
-    total: '125,43',
-  },
-]
-
+const orders = ref([])
 const sortedOrders = computed(() => {
-  {
-    return [...orders].sort((a, b) => Number(b.id) - Number(a.id))
-  }
+  return [...orders.value].sort((a, b) => new Date(b.date) - new Date(a.date))
 })
 
 onMounted(async () => {
@@ -302,4 +275,45 @@ async function promijeniLozinku() {
     }
   }
 }
+
+async function fetchOrders() {
+  if (!user?.uid) return
+
+  try {
+    const ordersRef = collection(db, 'orders')
+    const q = query(ordersRef, where('userId', '==', user.uid))
+    const querySnapshot = await getDocs(q)
+
+    orders.value = querySnapshot.docs.map((doc) => {
+      const data = doc.data()
+
+      return {
+        id: doc.id,
+        status: data.status || 'U obradi',
+        time: data.timestamp?.toDate().toLocaleString('hr-HR') || '',
+        total: data.totalPrice?.toFixed(2) || '0.00',
+      }
+    })
+  } catch (error) {
+    console.error('Greška pri dohvaćanju narudžbi:', error)
+  }
+}
+
+onMounted(async () => {
+  if (!user?.uid) return
+
+  const userDocRef = doc(db, 'users', user.uid)
+  const userSnap = await getDoc(userDocRef)
+
+  if (userSnap.exists()) {
+    const data = userSnap.data()
+    imePrezime.value = data.fullName || ''
+    telefon.value = data.telefon || ''
+    adresa.value = data.adresa || ''
+    mjesto.value = data.mjesto || ''
+    zip.value = data.zip || ''
+  }
+
+  await fetchOrders()
+})
 </script>

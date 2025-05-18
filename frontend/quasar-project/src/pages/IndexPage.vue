@@ -42,7 +42,7 @@
       <div class="col-10 q-pa-md">
         <div class="q-pa-md q-mb-md shadow-1 bg-white rounded-borders">
           <div class="text-h5 text-center text-bold">
-            {{ selectedCategory !== 'Sve' ? selectedCategory : 'Dobrodošli' }}
+            {{ selectedCategory !== 'Sve' ? selectedCategory : `Dobrodošli` }}
           </div>
         </div>
         <div v-if="loading" class="full-width text-center q-my-xl">
@@ -107,7 +107,7 @@ import { useCartStore } from '../stores/cart'
 import { useProductsStore } from '../stores/products'
 import { useAuthStore } from '../stores/auth'
 
-const categories = ['Sve', 'Kave', 'Pjenilice', 'Aparati']
+const categories = ['Sve', 'Kave', 'Filteri', 'Aparati']
 const sortOptions = ['Zadano', 'Cijena dolje', 'Cijena gore']
 const selectedCategory = ref('Sve')
 const selectedSort = ref('Zadano')
@@ -141,7 +141,7 @@ function clearFilters() {
   }
 }*/
 function dodajUKosaricu(product, kolicina = 1) {
-  cartStore.addToCart({ ...product, quantity: kolicina })
+  cartStore.addToCart({ ...product, quantity: kolicina, inStock: product.inStock ?? 0 })
 }
 
 function pretrazi() {

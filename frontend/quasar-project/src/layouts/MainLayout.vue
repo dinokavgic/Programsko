@@ -111,7 +111,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import LogoutDialog from 'src/components/LogoutDialog.vue'
 import { useCartStore } from '../stores/cart'
 import { useAuthStore } from '../stores/auth'
@@ -144,4 +144,9 @@ const increaseQuantity = (productId) => {
 const decreaseQuantity = (productId) => {
   cartStore.decreaseQuantity(productId)
 }
+
+onMounted(async () => {
+  await cartStore.syncCartWithStock()
+  cartStore.subscribeToCartStock()
+})
 </script>

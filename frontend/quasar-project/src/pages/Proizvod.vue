@@ -79,8 +79,10 @@
                 type="number"
                 style="width: 60px"
                 min="1"
-                max="99"
-                :rules="[(val) => (val >= 1 && val <= 99) || 'Min 1, Max 99']"
+                max="product.inStock"
+                :rules="[
+                  (val) => (val >= 1 && val <= product.inStock) || `Min 1, Max ${product.inStock}`,
+                ]"
                 :disable="isProductDisabled(product)"
               />
               <q-btn
@@ -165,18 +167,26 @@ onUnmounted(() => {
 })
 
 function increaseQuantity() {
-  kolicina.value++
+  if (kolicina.value < product.value.inStock) {
+    kolicina.value++
+  }
 }
 function decreaseQuantity() {
   if (kolicina.value > 1) kolicina.value--
 }
 
 function addToCart() {
+  if (kolicina.value > product.value.inStock) {
+    alert(`Nažalost, na zalihi je samo ${product.value.inStock} komada.`)
+
+    return
+  }
   cartStore.addToCart({
     id: product.value.id,
     name: product.value.name,
     price: product.value.price,
     quantity: kolicina.value,
+    inStock: product.value.inStock,
   })
 
   addToCartDialog.value.open()
@@ -201,7 +211,6 @@ async function saveChanges() {
     editing.value = false
   } catch (error) {
     console.error('Spremanje nije uspjelo:', error)
-    // Možeš dodati i obavijest korisniku pomoću npr. `this.$q.notify`
   }
 }
 
