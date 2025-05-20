@@ -93,7 +93,7 @@
           <q-card class="q-mb-md">
             <q-card-section>
               <div class="text-subtitle2">Moji bodovi</div>
-              <div class="text-h5">{{ points }} ☕</div>
+              <div class="text-h5">{{ bodovi }} ☕</div>
               <div class="text-caption">Sakupljaj bodove i ostvari pogodnosti na iduću kupnju.</div>
               <q-btn label="Saznaj kako ih zaraditi" flat class="q-mt-sm" @click="showHowToEarn = !showHowToEarn" />
               <div v-if="showHowToEarn" class="q-mt-sm text-body2">
@@ -150,12 +150,15 @@ import { ref, reactive, computed, onMounted } from 'vue'
 import { db, storage } from 'src/firebase'
 import { doc, updateDoc, arrayUnion } from 'firebase/firestore'
 import { useAuthStore } from 'stores/auth'
+import { dodajBodKorisniku } from 'src/bodovi'
+
 
 
 
 import {
   collection,
   addDoc,
+  getDoc,
   getDocs,
   query,
   orderBy,
@@ -167,8 +170,12 @@ import {
   getDownloadURL
 } from 'firebase/storage'
 
+function navigateToLogin() {
+  window.location.href = '/LogIn.vue';
+}
+
 const page = ref(1)
-const points = ref(245)
+const bodovi= ref(0)
 const showNewArticle = ref(false)
 const showHowToEarn = ref(false)
 const showInfoCard = ref(true)
@@ -179,6 +186,7 @@ const newComments = reactive({})
 const editingComment = reactive({ articleId: null, index: null, text: '' })
 const authStore = useAuthStore()
 const user = authStore.user
+
 
 
 const newArticle = reactive({
@@ -231,36 +239,39 @@ function deleteComment(articleId, index) {
   if (!article || index < 0 || index >= article.comments.length) return
 
   article.comments.splice(index, 1)
-  points.value--
+  bodovi.value--
 }
 
 async function submitComment(articleId) {
-  const text = newComments[articleId]?.trim()
-  if (!text) return
+  if (!user?.uid) return navigateToLogin();
 
- const comment = {
-  author: user.displayName || user.email || 'Korisnik',
-  uid: user.uid,
-  text,
-  likes: 0,
-  time: new Date().toLocaleTimeString('hr-HR', { hour: '2-digit', minute: '2-digit' }),
-  date: new Date().toLocaleDateString('hr-HR')
-}
+  const text = newComments[articleId]?.trim();
+  if (!text) return;
 
-  // Lokalno dodavanje komentara
-  const article = articles.value.find((a) => a.id === articleId)
+  const comment = {
+    author: user.displayName || user.email || 'Korisnik',
+    uid: user.uid,
+    text,
+    likes: 0,
+    time: new Date().toLocaleTimeString('hr-HR', { hour: '2-digit', minute: '2-digit' }),
+    date: new Date().toLocaleDateString('hr-HR')
+  };
+
+  const article = articles.value.find((a) => a.id === articleId);
   if (article) {
-    article.comments.push(comment)
+    article.comments.push(comment);
   }
 
-  // Firebase ažuriranje
-  const articleRef = doc(db, 'articles', articleId)
+  const articleRef = doc(db, 'articles', articleId);
   await updateDoc(articleRef, {
     comments: arrayUnion(comment)
-  })
+  });
 
-  newComments[articleId] = ''
-  points.value++
+  // ✅ Dodaj bod korisniku
+  await dodajBodKorisniku(user.uid);
+
+  newComments[articleId] = '';
+  bodovi.value++;
 }
 
 async function addArticle() {
@@ -324,9 +335,23 @@ function handleSort(option) {
   }
 }
 
+
+
 onMounted(async () => {
+  // bodovi dohvat samo ako je prijavljen
+  if (user?.uid) {
+    const userDocRef = doc(db, 'users', user.uid)
+    const userSnap = await getDoc(userDocRef)
+    if (userSnap.exists()) {
+      const data = userSnap.data()
+      bodovi.value = data.bodovi || 0
+    }
+  }
+
+  // ovaj dio radi i za goste
   const q = query(collection(db, 'articles'), orderBy('createdAt', 'desc'))
   const snapshot = await getDocs(q)
   articles.value = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }))
 })
+
 </script>

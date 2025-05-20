@@ -172,9 +172,11 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useAuthStore } from 'stores/auth'
-import { doc, getDoc, updateDoc, collection, query, where, getDocs } from 'firebase/firestore'
+import { doc, getDoc, updateDoc, collection, query, where, getDocs} from 'firebase/firestore'
 import { reauthenticateWithCredential, EmailAuthProvider, updatePassword } from 'firebase/auth'
 import { db, auth } from 'src/firebase'
+
+
 
 const authStore = useAuthStore()
 const user = authStore.user
@@ -185,6 +187,7 @@ const telefon = ref('')
 const adresa = ref('')
 const mjesto = ref('')
 const zip = ref('')
+const bodovi = ref(0)
 
 const activeTab = ref('informacije')
 const password = ref('')
@@ -213,6 +216,7 @@ onMounted(async () => {
     adresa.value = data.adresa || ''
     mjesto.value = data.mjesto || ''
     zip.value = data.zip || ''
+    bodovi.value = data.bodovi || 0
   }
 })
 
@@ -228,6 +232,7 @@ async function spremiProfil() {
       adresa: adresa.value,
       mjesto: mjesto.value,
       zip: zip.value,
+      bodovi: bodovi.value,
     })
 
     alert('Podaci su uspješno spremljeni.')
@@ -236,6 +241,8 @@ async function spremiProfil() {
     alert('Greška pri spremanju podataka.')
   }
 }
+
+  
 async function promijeniLozinku() {
   const user = auth.currentUser
   if (!user) {
@@ -316,4 +323,6 @@ onMounted(async () => {
 
   await fetchOrders()
 })
+
+
 </script>
