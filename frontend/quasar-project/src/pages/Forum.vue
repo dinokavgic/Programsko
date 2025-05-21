@@ -51,6 +51,19 @@
               </div>
             </q-card-section>
 
+    <!-- Like gumb -->
+    <div class="row items-center q-mb-sm">
+      <q-btn
+        flat
+        round
+        dense
+        icon="favorite"
+        :color="art.likes?.includes(user?.uid) ? 'red' : 'grey'"
+        @click="toggleLike(art)"
+        :disable="!user"
+      />
+      <span class="q-ml-sm text-caption">{{ art.likes?.length || 0 }} sviđanja</span>
+    </div>
             <q-separator />
 
             <q-card-section>
@@ -76,6 +89,7 @@
               <q-input v-model="newComments[art.id]" label="Tvoj komentar..." dense filled class="q-mt-md" />
               <q-btn label="Pošalji komentar" color="primary" dense class="q-mt-sm" @click="submitComment(art.id)" />
             </q-card-section>
+
           </q-card>
 
           <q-pagination
@@ -148,22 +162,9 @@
 <script setup>
 import { ref, reactive, computed, onMounted } from 'vue'
 import { db, storage } from 'src/firebase'
-import { doc, updateDoc, arrayUnion } from 'firebase/firestore'
+import { doc, updateDoc, arrayUnion, arrayRemove, getDoc, collection, addDoc, getDocs, query, orderBy, serverTimestamp } from 'firebase/firestore'
 import { useAuthStore } from 'stores/auth'
 import { dodajBodKorisniku } from 'src/bodovi'
-
-
-
-
-import {
-  collection,
-  addDoc,
-  getDoc,
-  getDocs,
-  query,
-  orderBy,
-  serverTimestamp
-} from 'firebase/firestore'
 import {
   ref as storageRef,
   uploadBytes,
@@ -171,11 +172,11 @@ import {
 } from 'firebase/storage'
 
 function navigateToLogin() {
-  window.location.href = '/LogIn.vue';
+  window.location.href = '/LogIn';
 }
 
 const page = ref(1)
-const bodovi= ref(0)
+const bodovi = ref(0)
 const showNewArticle = ref(false)
 const showHowToEarn = ref(false)
 const showInfoCard = ref(true)
@@ -187,8 +188,6 @@ const editingComment = reactive({ articleId: null, index: null, text: '' })
 const authStore = useAuthStore()
 const user = authStore.user
 
-
-
 const newArticle = reactive({
   title: '',
   text: '',
@@ -198,10 +197,8 @@ const newArticle = reactive({
 
 const filteredArticles = computed(() => {
   if (!selectedCategory.value) return articles.value
-
-  return articles.value.filter(
-    (a) => a.category === selectedCategory.value
-  )
+  
+  return articles.value.filter((a) => a.category === selectedCategory.value)
 })
 
 const currentArticles = computed(() => {
@@ -210,9 +207,7 @@ const currentArticles = computed(() => {
   return filteredArticles.value.slice(start, start + 3)
 })
 
-const maxPages = computed(() =>
-  Math.ceil(filteredArticles.value.length / 3)
-)
+const maxPages = computed(() => Math.ceil(filteredArticles.value.length / 3))
 
 function cancelEdit() {
   editingComment.articleId = null
@@ -229,7 +224,6 @@ function editComment(articleId, index, text) {
 function saveComment(articleId, index) {
   const article = articles.value.find((a) => a.id === articleId)
   if (!article || index < 0 || index >= article.comments.length) return
-
   article.comments[index].text = editingComment.text
   cancelEdit()
 }
@@ -237,16 +231,38 @@ function saveComment(articleId, index) {
 function deleteComment(articleId, index) {
   const article = articles.value.find((a) => a.id === articleId)
   if (!article || index < 0 || index >= article.comments.length) return
-
   article.comments.splice(index, 1)
   bodovi.value--
 }
 
-async function submitComment(articleId) {
-  if (!user?.uid) return navigateToLogin();
+async function toggleLike(article) {
+  if (!user?.uid) {
+    navigateToLogin()
 
-  const text = newComments[articleId]?.trim();
-  if (!text) return;
+    return
+  }
+  const alreadyLiked = article.likes?.includes(user.uid)
+  const articleRef = doc(db, 'articles', article.id)
+  if (alreadyLiked) {
+    article.likes = article.likes.filter(uid => uid !== user.uid)
+    await updateDoc(articleRef, {
+      likes: arrayRemove(user.uid)
+    })
+  } else {
+    article.likes = [...(article.likes || []), user.uid]
+    await updateDoc(articleRef, {
+      likes: arrayUnion(user.uid)
+    })
+    await dodajBodKorisniku(user.uid)
+    bodovi.value++
+  }
+}
+
+async function submitComment(articleId) {
+  if (!user?.uid) return navigateToLogin()
+
+  const text = newComments[articleId]?.trim()
+  if (!text) return
 
   const comment = {
     author: user.displayName || user.email || 'Korisnik',
@@ -255,29 +271,25 @@ async function submitComment(articleId) {
     likes: 0,
     time: new Date().toLocaleTimeString('hr-HR', { hour: '2-digit', minute: '2-digit' }),
     date: new Date().toLocaleDateString('hr-HR')
-  };
-
-  const article = articles.value.find((a) => a.id === articleId);
-  if (article) {
-    article.comments.push(comment);
   }
 
-  const articleRef = doc(db, 'articles', articleId);
+  const article = articles.value.find(a => a.id === articleId)
+  if (article) {
+    article.comments.push(comment)
+  }
+
+  const articleRef = doc(db, 'articles', articleId)
   await updateDoc(articleRef, {
     comments: arrayUnion(comment)
-  });
+  })
 
-  // ✅ Dodaj bod korisniku
-  await dodajBodKorisniku(user.uid);
-
-  newComments[articleId] = '';
-  bodovi.value++;
+  await dodajBodKorisniku(user.uid)
+  newComments[articleId] = ''
+  bodovi.value++
 }
 
 async function addArticle() {
   const file = newArticle.image[0]?.__file
-
-
   let imageUrl = ''
   if (file) {
     const storagePath = `forum_images/${Date.now()}_${file.name}`
@@ -290,7 +302,7 @@ async function addArticle() {
     title: newArticle.title,
     text: newArticle.text,
     category: newArticle.category,
-    author: 'Trenutni Korisnik',
+    author: user?.displayName || 'Trenutni Korisnik',
     time: new Date().toLocaleTimeString('hr-HR', {
       hour: '2-digit',
       minute: '2-digit'
@@ -298,6 +310,7 @@ async function addArticle() {
     date: new Date().toLocaleDateString('hr-HR'),
     image: imageUrl,
     comments: [],
+    likes: [],
     createdAt: serverTimestamp()
   }
 
@@ -321,24 +334,13 @@ function cancelNewArticle() {
 function handleSort(option) {
   activeSort.value = option
   if (option === 'date_desc') {
-    articles.value.sort(
-      (a, b) =>
-        new Date(b.date.split('.').reverse().join('-')) -
-        new Date(a.date.split('.').reverse().join('-'))
-    )
-  } else if (option === 'date_asc') {
-    articles.value.sort(
-      (a, b) =>
-        new Date(a.date.split('.').reverse().join('-')) -
-        new Date(b.date.split('.').reverse().join('-'))
-    )
+    articles.value.sort((a, b) => new Date(b.date.split('.').reverse().join('-')) - new Date(a.date.split('.').reverse().join('-')))
+  } else {
+    articles.value.sort((a, b) => new Date(a.date.split('.').reverse().join('-')) - new Date(b.date.split('.').reverse().join('-')))
   }
 }
 
-
-
 onMounted(async () => {
-  // bodovi dohvat samo ako je prijavljen
   if (user?.uid) {
     const userDocRef = doc(db, 'users', user.uid)
     const userSnap = await getDoc(userDocRef)
@@ -348,10 +350,8 @@ onMounted(async () => {
     }
   }
 
-  // ovaj dio radi i za goste
   const q = query(collection(db, 'articles'), orderBy('createdAt', 'desc'))
   const snapshot = await getDocs(q)
   articles.value = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }))
 })
-
 </script>
