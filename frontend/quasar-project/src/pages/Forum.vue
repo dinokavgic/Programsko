@@ -164,7 +164,7 @@ import { ref, reactive, computed, onMounted } from 'vue'
 import { db, storage } from 'src/firebase'
 import { doc, updateDoc, arrayUnion, arrayRemove, getDoc, collection, addDoc, getDocs, query, orderBy, serverTimestamp } from 'firebase/firestore'
 import { useAuthStore } from 'stores/auth'
-import { dodajBodKorisniku } from 'src/bodovi'
+import { dodajBodKorisniku, oduzmiBodKorisniku } from 'src/bodovi'
 import {
   ref as storageRef,
   uploadBytes,
@@ -241,20 +241,33 @@ async function toggleLike(article) {
 
     return
   }
-  const alreadyLiked = article.likes?.includes(user.uid)
+
   const articleRef = doc(db, 'articles', article.id)
+  const alreadyLiked = article.likes?.includes(user.uid)
+
   if (alreadyLiked) {
+    // Makni lajk lokalno
     article.likes = article.likes.filter(uid => uid !== user.uid)
+
+    // Makni lajk u bazi
     await updateDoc(articleRef, {
       likes: arrayRemove(user.uid)
     })
+
+    // Oduzmi bod autoru
+    await oduzmiBodKorisniku(article.author)
   } else {
-    article.likes = [...(article.likes || []), user.uid]
+    // Dodaj lajk lokalno
+    if (!article.likes) article.likes = []
+    article.likes.push(user.uid)
+
+    // Dodaj lajk u bazi
     await updateDoc(articleRef, {
       likes: arrayUnion(user.uid)
     })
-    await dodajBodKorisniku(user.uid)
-    bodovi.value++
+
+    // Dodaj bod autoru
+    await dodajBodKorisniku(article.author)
   }
 }
 
@@ -302,7 +315,7 @@ async function addArticle() {
     title: newArticle.title,
     text: newArticle.text,
     category: newArticle.category,
-    author: user?.displayName || 'Trenutni Korisnik',
+      author: user.uid,
     time: new Date().toLocaleTimeString('hr-HR', {
       hour: '2-digit',
       minute: '2-digit'

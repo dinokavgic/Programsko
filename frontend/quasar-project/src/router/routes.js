@@ -16,7 +16,11 @@ const routes = [
         meta: { requiresAuth: true },
       },
       { path: 'Proizvod/:id', component: () => import('pages/Proizvod.vue') },
-      { path: 'Forum', component: () => import('pages/Forum.vue') },
+
+      {
+        path: 'Forum',
+        component: () => import('pages/Forum.vue')
+      },
       {
         path: 'AdminPanel',
         component: () => import('pages/AdminPanel.vue'),
