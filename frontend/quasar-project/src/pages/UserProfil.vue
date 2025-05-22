@@ -172,11 +172,9 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useAuthStore } from 'stores/auth'
-import { doc, getDoc, updateDoc, collection, query, where, getDocs} from 'firebase/firestore'
+import { doc, getDoc, updateDoc, collection, query, where, getDocs } from 'firebase/firestore'
 import { reauthenticateWithCredential, EmailAuthProvider, updatePassword } from 'firebase/auth'
 import { db, auth } from 'src/firebase'
-
-
 
 const authStore = useAuthStore()
 const user = authStore.user
@@ -242,7 +240,6 @@ async function spremiProfil() {
   }
 }
 
-  
 async function promijeniLozinku() {
   const user = auth.currentUser
   if (!user) {
@@ -323,6 +320,4 @@ onMounted(async () => {
 
   await fetchOrders()
 })
-
-
 </script>

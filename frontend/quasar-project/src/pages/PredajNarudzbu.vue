@@ -123,7 +123,12 @@
           <q-separator class="q-mb-xs"></q-separator>
           <q-toggle
             v-model="koristiBodove"
-            :label="`Koristi moje bodove za kupnju (${bodovi}) i uštedi (${bodovi * (0.01).toFixed(2)} €).`"
+            :label="
+              koristiBodove
+                ? `Iskoristit ćeš (${iskoristeniBodovi}) bodova i uštedjeti (${pointsDiscount.toFixed(2)} €).`
+                : `Koristi moje bodove (${bodovi}) za ovu kupnju.`
+            "
+            :disable="bodovi === 0"
           />
 
           <div class="row q-gutter-sm q-mt-md">
@@ -131,7 +136,11 @@
             <q-btn
               label="Dalje"
               color="primary"
-              @click="step++"
+              @click="
+                () => {
+                  if (selectedPayment && selectedDelivery) step++
+                }
+              "
               :disable="!selectedDelivery || !selectedPayment"
             />
           </div>
@@ -214,9 +223,17 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch, reactive } from 'vue'
+import { ref, computed, onMounted, watch, reactive, onUnmounted } from 'vue'
 import { useCartStore } from '../stores/cart'
-import { doc, getDoc, updateDoc, collection, addDoc, serverTimestamp } from 'firebase/firestore'
+import {
+  doc,
+  getDoc,
+  updateDoc,
+  collection,
+  addDoc,
+  serverTimestamp,
+  onSnapshot,
+} from 'firebase/firestore'
 import { useAuthStore } from 'stores/auth'
 import { db } from 'src/firebase'
 import { useRouter } from 'vue-router'
@@ -224,7 +241,7 @@ import OrderSuccessDialog from 'components/OrderSuccessDialog.vue'
 
 const step = ref(1)
 const koristiBodove = ref(false)
-const bodovi = computed(() => userData.value.points || 0)
+const bodovi = computed(() => userData.value.bodovi || 0)
 
 const selectedPayment = ref(null)
 const selectedDelivery = ref(null)
@@ -252,7 +269,7 @@ const userData = ref({
   adresa: '',
   mjesto: '',
   zip: '',
-  points: 0,
+  bodovi: 0,
 })
 
 const shipping = 5.0
@@ -264,9 +281,8 @@ const paymentFee = computed(() => {
 })
 const pointsDiscount = computed(() => {
   const maxDiscount = total.value
-  const userDiscount = bodovi.value * 0.01
 
-  return koristiBodove.value ? Math.min(userDiscount, maxDiscount) : 0
+  return koristiBodove.value ? Math.min(bodovi.value * 0.01, maxDiscount) : 0
 })
 
 const iskoristeniBodovi = computed(() => Math.floor(pointsDiscount.value / 0.01))
@@ -334,7 +350,7 @@ async function submitOrder() {
 
     try {
       await updateDoc(userDocRef, {
-        points: noviBrojBodova,
+        bodovi: noviBrojBodova,
       })
       console.log(`Ažurirani bodovi korisnika: ${noviBrojBodova}`)
     } catch (err) {
@@ -393,23 +409,28 @@ function handleDialogClose() {
   router.push('/')
 }
 
+let unsubscribe = null
+
 onMounted(async () => {
   if (user?.uid) {
     const userDocRef = doc(db, 'users', user.uid)
-    const userSnap = await getDoc(userDocRef)
-
-    if (userSnap.exists()) {
-      const data = userSnap.data()
-      userData.value = {
-        fullName: data.fullName || '',
-        telefon: data.telefon || '',
-        adresa: data.adresa || '',
-        mjesto: data.mjesto || '',
-        zip: data.zip || '',
-        points: data.points || 0,
+    unsubscribe = onSnapshot(userDocRef, (docSnap) => {
+      if (docSnap.exists()) {
+        const data = docSnap.data()
+        userData.value = {
+          fullName: data.fullName || '',
+          telefon: data.telefon || '',
+          adresa: data.adresa || '',
+          mjesto: data.mjesto || '',
+          zip: data.zip || '',
+          bodovi: data.bodovi || 0,
+        }
       }
-    }
+    })
   }
+})
+onUnmounted(() => {
+  if (unsubscribe) unsubscribe()
 })
 
 watch(useMyAddress, (val) => {
