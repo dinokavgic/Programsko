@@ -46,9 +46,16 @@
                 {{ art.author }} · {{ art.category }} · {{ art.time }} · {{ art.date }}
               </div>
               <div class="q-mt-sm">{{ art.text }}</div>
-              <div v-if="art.image" class="q-mt-md">
-                <q-img :src="art.image" style="max-width: 100%; max-height: 300px" />
-              </div>
+              <div v-if="art.images && art.images.length" class="q-mt-md">
+  <q-img
+    v-for="(img, i) in art.images"
+    :key="i"
+    :src="img"
+    style="max-width: 100%; max-height: 300px"
+    class="q-mb-sm"
+  />
+</div>
+
             </q-card-section>
 
     <!-- Like gumb -->
@@ -146,7 +153,17 @@
             filled
             class="q-mb-sm"
           />
-          <q-file v-model="newArticle.image" label="Slika" filled class="q-mb-sm" />
+           <q-uploader
+              ref="uploaderRef"
+              v-model="slike"
+              label="Fotografije"
+              multiple
+              accept="image/*"
+              :filter="filterSlike"
+              auto-upload="false"
+              style="max-width: 300px"
+              @added="dodajSlike"
+            />
         </q-card-section>
 
         <q-card-actions align="right">
@@ -161,15 +178,11 @@
 
 <script setup>
 import { ref, reactive, computed, onMounted } from 'vue'
-import { db, storage } from 'src/firebase'
+import { db} from 'src/firebase'
 import { doc, updateDoc, arrayUnion, arrayRemove, getDoc, collection, addDoc, getDocs, query, orderBy, serverTimestamp } from 'firebase/firestore'
 import { useAuthStore } from 'stores/auth'
 import { dodajBodKorisniku, oduzmiBodKorisniku } from 'src/bodovi'
-import {
-  ref as storageRef,
-  uploadBytes,
-  getDownloadURL
-} from 'firebase/storage'
+
 
 function navigateToLogin() {
   window.location.href = '/LogIn';
@@ -187,6 +200,8 @@ const newComments = reactive({})
 const editingComment = reactive({ articleId: null, index: null, text: '' })
 const authStore = useAuthStore()
 const user = authStore.user
+const slikeFiles = ref([])
+
 
 const newArticle = reactive({
   title: '',
@@ -302,15 +317,9 @@ async function submitComment(articleId) {
 }
 
 async function addArticle() {
-  const file = newArticle.image[0]?.__file
-  let imageUrl = ''
-  if (file) {
-    const storagePath = `forum_images/${Date.now()}_${file.name}`
-    const storageReference = storageRef(storage, storagePath)
-    await uploadBytes(storageReference, file)
-    imageUrl = await getDownloadURL(storageReference)
-  }
+  
 
+const imageBase64List = await Promise.all(slikeFiles.value.map((file) => toBase64(file)))
   const newDoc = {
     title: newArticle.title,
     text: newArticle.text,
@@ -321,7 +330,7 @@ async function addArticle() {
       minute: '2-digit'
     }),
     date: new Date().toLocaleDateString('hr-HR'),
-    image: imageUrl,
+    images: imageBase64List,
     comments: [],
     likes: [],
     createdAt: serverTimestamp()
@@ -336,7 +345,7 @@ function resetNewArticle() {
   newArticle.title = ''
   newArticle.text = ''
   newArticle.category = ''
-  newArticle.image = []
+  slikeFiles.value = []
   showNewArticle.value = false
 }
 
@@ -351,6 +360,18 @@ function handleSort(option) {
   } else {
     articles.value.sort((a, b) => new Date(a.date.split('.').reverse().join('-')) - new Date(b.date.split('.').reverse().join('-')))
   }
+}
+
+const dodajSlike = (files) => {
+  slikeFiles.value.push(...files)
+}
+function toBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.readAsDataURL(file)
+    reader.onload = () => resolve(reader.result)
+    reader.onerror = (error) => reject(error)
+  })
 }
 
 onMounted(async () => {
