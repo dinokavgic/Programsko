@@ -16,11 +16,7 @@ const routes = [
         meta: { requiresAuth: true },
       },
       { path: 'Proizvod/:id', component: () => import('pages/Proizvod.vue') },
-
-      {
-        path: 'Forum',
-        component: () => import('pages/Forum.vue')
-      },
+      { path: 'Forum', component: () => import('pages/Forum.vue') },
       {
         path: 'AdminPanel',
         component: () => import('pages/AdminPanel.vue'),
@@ -33,44 +29,9 @@ const routes = [
       },
     ],
   },
-
-  // Always leave this as last one,
-  // but you can also remove it
   {
     path: '/:catchAll(.*)*',
     component: () => import('pages/ErrorNotFound.vue'),
-  },
-  {
-    path: '/LogIn',
-    name: 'Login',
-    component: () => import('pages/LogIn.vue'),
-  },
-  {
-    path: '/Register',
-    name: 'Register',
-    component: () => import('pages/Register.vue'),
-  },
-  {
-    path: '/UserProfil',
-    name: 'UserProfil',
-    component: () => import('src/pages/UserProfil.vue'),
-  },
-  {
-    path: '/Proizvod/:id',
-    component: () => import('src/pages/Proizvod.vue'),
-  },
-  {
-    path: '/Forum',
-    name: 'Forum',
-    component: () => import('src/pages/Forum.vue'),
-  },
-  {
-    path: '/AdminPanel',
-    component: () => import('src/pages/AdminPanel.vue'),
-  },
-  {
-    path: '/PredajNarudzbu',
-    component: () => import('src/pages/PredajNarudzbu.vue'),
   },
 ]
 
