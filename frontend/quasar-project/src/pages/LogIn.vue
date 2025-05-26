@@ -2,8 +2,8 @@
   <q-page class="column flex-center items-center bg-grey-2">
     <div class="q-mb-xl">
       <img
-        alt="Quasar logo"
-        src="~assets/quasar-logo-vertical.svg"
+        alt="coffee cup logo"
+        src="~assets/coffee-cup-logo-coffee-shop-icon-design-free-vector.jpg"
         style="width: 120px; height: 120px"
       />
     </div>
