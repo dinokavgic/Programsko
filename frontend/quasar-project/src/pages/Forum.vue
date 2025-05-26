@@ -54,8 +54,18 @@
     style="max-width: 100%; max-height: 300px"
     class="q-mb-sm"
   />
-</div>
+</div>       
 
+<q-btn
+  v-if="user && (art.author === user.uid || user.adminStatus)"
+  dense
+  flat
+  size="sm"
+  color="negative"
+  label="Obriši članak"
+  @click="deleteArticle(art.id)"
+  class="q-mt-sm"
+/>
             </q-card-section>
 
     <!-- Like gumb -->
@@ -182,6 +192,7 @@ import { db} from 'src/firebase'
 import { doc, updateDoc, arrayUnion, arrayRemove, getDoc, collection, addDoc, getDocs, query, orderBy, serverTimestamp } from 'firebase/firestore'
 import { useAuthStore } from 'stores/auth'
 import { dodajBodKorisniku, oduzmiBodKorisniku } from 'src/bodovi'
+import { deleteDoc } from 'firebase/firestore'
 
 
 function navigateToLogin() {
@@ -388,4 +399,31 @@ onMounted(async () => {
   const snapshot = await getDocs(q)
   articles.value = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }))
 })
+async function deleteArticle(articleId) {
+  const article = articles.value.find((a) => a.id === articleId)
+  if (!article) return
+
+  const isAuthor = article.author === user?.uid
+  const isAdmin = authStore.user?.adminStatus === true
+
+  if (!isAuthor && !isAdmin) {
+    alert('Samo autor članka ili administrator može obrisati članak.')
+
+    return
+  }
+
+  try {
+    // ukloni iz baze
+    const articleRef = doc(db, 'articles', articleId)
+   await deleteDoc(articleRef)
+
+    // ukloni iz lokalnog prikaza
+    articles.value = articles.value.filter(a => a.id !== articleId)
+
+    alert('Članak je uspješno obrisan.')
+  } catch (error) {
+    console.error('Greška pri brisanju članka:', error)
+    alert('Došlo je do pogreške.')
+  }
+}
 </script>
