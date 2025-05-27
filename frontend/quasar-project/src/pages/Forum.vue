@@ -7,16 +7,44 @@
           <q-card class="q-mb-md">
             <q-card-section class="text-subtitle2">Kategorije</q-card-section>
             <q-list bordered>
-              <q-item clickable v-ripple @click="selectedCategory = ''; page = 1">
+              <q-item
+                clickable
+                v-ripple
+                @click="
+                  selectedCategory = ''
+                  page = 1
+                "
+              >
                 <q-item-section>Prikaži sve</q-item-section>
               </q-item>
-              <q-item clickable v-ripple @click="selectedCategory = 'Općenito'; page = 1">
+              <q-item
+                clickable
+                v-ripple
+                @click="
+                  selectedCategory = 'Općenito'
+                  page = 1
+                "
+              >
                 <q-item-section>Općenito</q-item-section>
               </q-item>
-              <q-item clickable v-ripple @click="selectedCategory = 'Iskustva'; page = 1">
+              <q-item
+                clickable
+                v-ripple
+                @click="
+                  selectedCategory = 'Iskustva'
+                  page = 1
+                "
+              >
                 <q-item-section>Iskustva</q-item-section>
               </q-item>
-              <q-item clickable v-ripple @click="selectedCategory = 'Moji članci'; page = 1">
+              <q-item
+                clickable
+                v-ripple
+                @click="
+                  selectedCategory = 'Moji članci'
+                  page = 1
+                "
+              >
                 <q-item-section>Moji članci</q-item-section>
               </q-item>
             </q-list>
@@ -37,7 +65,12 @@
 
         <!-- Glavni sadržaj -->
         <div class="col-6">
-          <q-btn label="Novi članak" color="primary" class="q-mb-md" @click="showNewArticle = true" />
+          <q-btn
+            label="Novi članak"
+            color="primary"
+            class="q-mb-md"
+            @click="showNewArticle = true"
+          />
 
           <q-card v-for="art in currentArticles" :key="art.id" class="q-mb-md">
             <q-card-section>
@@ -47,66 +80,97 @@
               </div>
               <div class="q-mt-sm">{{ art.text }}</div>
               <div v-if="art.images && art.images.length" class="q-mt-md">
-  <q-img
-    v-for="(img, i) in art.images"
-    :key="i"
-    :src="img"
-    style="max-width: 100%; max-height: 300px"
-    class="q-mb-sm"
-  />
-</div>       
+                <q-img
+                  v-for="(img, i) in art.images"
+                  :key="i"
+                  :src="img"
+                  style="max-width: 100%; max-height: 300px"
+                  class="q-mb-sm"
+                />
+              </div>
 
-<q-btn
-  v-if="user && (art.author === user.uid || user.adminStatus)"
-  dense
-  flat
-  size="sm"
-  color="negative"
-  label="Obriši članak"
-  @click="deleteArticle(art.id)"
-  class="q-mt-sm"
-/>
+              <q-btn
+                v-if="user && (art.author === user.uid || user.adminStatus)"
+                dense
+                flat
+                size="sm"
+                color="negative"
+                label="Obriši članak"
+                @click="deleteArticle(art.id)"
+                class="q-mt-sm"
+              />
             </q-card-section>
 
-    <!-- Like gumb -->
-    <div class="row items-center q-mb-sm">
-      <q-btn
-        flat
-        round
-        dense
-        icon="favorite"
-        :color="art.likes?.includes(user?.uid) ? 'red' : 'grey'"
-        @click="toggleLike(art)"
-        :disable="!user"
-      />
-      <span class="q-ml-sm text-caption">{{ art.likes?.length || 0 }} sviđanja</span>
-    </div>
+            <!-- Like gumb -->
+            <div class="row items-center q-mb-sm">
+              <q-btn
+                flat
+                round
+                dense
+                icon="favorite"
+                :color="art.likes?.includes(user?.uid) ? 'red' : 'grey'"
+                @click="toggleLike(art)"
+                :disable="!user"
+              />
+              <span class="q-ml-sm text-caption">{{ art.likes?.length || 0 }} sviđanja</span>
+            </div>
             <q-separator />
 
             <q-card-section>
               <div class="text-caption">{{ art.comments.length }} komentara</div>
 
               <div v-for="(comment, index) in art.comments" :key="index" class="q-mt-xs">
-                <div class="text-caption">{{ comment.author }} · {{ comment.time }} · {{ comment.date }}</div>
+                <div class="text-caption">
+                  {{ comment.author }} · {{ comment.time }} · {{ comment.date }}
+                </div>
 
                 <div v-if="editingComment.articleId === art.id && editingComment.index === index">
                   <q-input v-model="editingComment.text" dense filled autofocus />
                   <div class="q-mt-sm">
-                    <q-btn label="Spremi" color="positive" dense @click="saveComment(art.id, index)" />
+                    <q-btn
+                      label="Spremi"
+                      color="positive"
+                      dense
+                      @click="saveComment(art.id, index)"
+                    />
                     <q-btn label="Odustani" dense flat @click="cancelEdit" />
                   </div>
                 </div>
                 <div v-else>
                   <div>{{ comment.text }}</div>
-                  <q-btn dense flat size="sm" label="Uredi" @click="editComment(art.id, index, comment.text)" />
-                  <q-btn dense flat size="sm" color="negative" label="Obriši" @click="deleteComment(art.id, index)" />
+                  <q-btn
+                    dense
+                    flat
+                    size="sm"
+                    label="Uredi"
+                    @click="editComment(art.id, index, comment.text)"
+                  />
+                  <q-btn
+                    dense
+                    flat
+                    size="sm"
+                    color="negative"
+                    label="Obriši"
+                    @click="deleteComment(art.id, index)"
+                  />
                 </div>
               </div>
 
-              <q-input v-model="newComments[art.id]" label="Tvoj komentar..." dense filled class="q-mt-md" />
-              <q-btn label="Pošalji komentar" color="primary" dense class="q-mt-sm" @click="submitComment(art.id)" />
+              <q-input
+                v-model="newComments[art.id]"
+                label="Tvoj komentar..."
+                dense
+                filled
+                class="q-mt-md"
+              />
+              <q-btn
+                label="Pošalji komentar"
+                color="primary"
+                dense
+                class="q-mt-sm"
+                @click="submitComment(art.id)"
+              />
             </q-card-section>
-
           </q-card>
 
           <q-pagination
@@ -126,9 +190,15 @@
               <div class="text-subtitle2">Moji bodovi</div>
               <div class="text-h5">{{ bodovi }} ☕</div>
               <div class="text-caption">Sakupljaj bodove i ostvari pogodnosti na iduću kupnju.</div>
-              <q-btn label="Saznaj kako ih zaraditi" flat class="q-mt-sm" @click="showHowToEarn = !showHowToEarn" />
+              <q-btn
+                label="Saznaj kako ih zaraditi"
+                flat
+                class="q-mt-sm"
+                @click="showHowToEarn = !showHowToEarn"
+              />
               <div v-if="showHowToEarn" class="q-mt-sm text-body2">
-                Ostavi komentare, lajkaj objave i sudjeluj u raspravama. Više aktivnosti = više bodova!
+                Ostavi komentare, lajkaj objave i sudjeluj u raspravama. Više aktivnosti = više
+                bodova!
               </div>
             </q-card-section>
           </q-card>
@@ -137,9 +207,16 @@
             <q-card-section>
               <div class="text-subtitle2">Bodovi</div>
               <div class="text-caption">
-                Ovaj ogledni tekst opisuje kako se bodovi zarađuju na forumu. Objavom ili lajkom možeš ih skupiti.
+                Ovaj ogledni tekst opisuje kako se bodovi zarađuju na forumu. Objavom ili lajkom
+                možeš ih skupiti.
               </div>
-              <q-btn label="Shvaćam" color="primary" flat class="q-mt-sm" @click="showInfoCard = false" />
+              <q-btn
+                label="Shvaćam"
+                color="primary"
+                flat
+                class="q-mt-sm"
+                @click="showInfoCard = false"
+              />
             </q-card-section>
           </q-card>
         </div>
@@ -163,17 +240,17 @@
             filled
             class="q-mb-sm"
           />
-           <q-uploader
-              ref="uploaderRef"
-              v-model="slike"
-              label="Fotografije"
-              multiple
-              accept="image/*"
-              :filter="filterSlike"
-              auto-upload="false"
-              style="max-width: 300px"
-              @added="dodajSlike"
-            />
+          <q-uploader
+            ref="uploaderRef"
+            v-model="slike"
+            label="Fotografije"
+            multiple
+            accept="image/*"
+            :filter="filterSlike"
+            :auto-upload="false"
+            style="max-width: 300px"
+            @added="dodajSlike"
+          />
         </q-card-section>
 
         <q-card-actions align="right">
@@ -185,18 +262,28 @@
   </q-page>
 </template>
 
-
 <script setup>
 import { ref, reactive, computed, onMounted } from 'vue'
-import { db} from 'src/firebase'
-import { doc, updateDoc, arrayUnion, arrayRemove, getDoc, collection, addDoc, getDocs, query, orderBy, serverTimestamp } from 'firebase/firestore'
+import { db } from 'src/firebase'
+import {
+  doc,
+  updateDoc,
+  arrayUnion,
+  arrayRemove,
+  getDoc,
+  collection,
+  addDoc,
+  getDocs,
+  query,
+  orderBy,
+  serverTimestamp,
+} from 'firebase/firestore'
 import { useAuthStore } from 'stores/auth'
 import { dodajBodKorisniku, oduzmiBodKorisniku } from 'src/bodovi'
 import { deleteDoc } from 'firebase/firestore'
 
-
 function navigateToLogin() {
-  window.location.href = '/LogIn';
+  window.location.href = '/LogIn'
 }
 
 const page = ref(1)
@@ -213,17 +300,16 @@ const authStore = useAuthStore()
 const user = authStore.user
 const slikeFiles = ref([])
 
-
 const newArticle = reactive({
   title: '',
   text: '',
   category: '',
-  image: []
+  image: [],
 })
 
 const filteredArticles = computed(() => {
   if (!selectedCategory.value) return articles.value
-  
+
   return articles.value.filter((a) => a.category === selectedCategory.value)
 })
 
@@ -273,11 +359,11 @@ async function toggleLike(article) {
 
   if (alreadyLiked) {
     // Makni lajk lokalno
-    article.likes = article.likes.filter(uid => uid !== user.uid)
+    article.likes = article.likes.filter((uid) => uid !== user.uid)
 
     // Makni lajk u bazi
     await updateDoc(articleRef, {
-      likes: arrayRemove(user.uid)
+      likes: arrayRemove(user.uid),
     })
 
     // Oduzmi bod autoru
@@ -289,7 +375,7 @@ async function toggleLike(article) {
 
     // Dodaj lajk u bazi
     await updateDoc(articleRef, {
-      likes: arrayUnion(user.uid)
+      likes: arrayUnion(user.uid),
     })
 
     // Dodaj bod autoru
@@ -309,17 +395,17 @@ async function submitComment(articleId) {
     text,
     likes: 0,
     time: new Date().toLocaleTimeString('hr-HR', { hour: '2-digit', minute: '2-digit' }),
-    date: new Date().toLocaleDateString('hr-HR')
+    date: new Date().toLocaleDateString('hr-HR'),
   }
 
-  const article = articles.value.find(a => a.id === articleId)
+  const article = articles.value.find((a) => a.id === articleId)
   if (article) {
     article.comments.push(comment)
   }
 
   const articleRef = doc(db, 'articles', articleId)
   await updateDoc(articleRef, {
-    comments: arrayUnion(comment)
+    comments: arrayUnion(comment),
   })
 
   await dodajBodKorisniku(user.uid)
@@ -328,23 +414,21 @@ async function submitComment(articleId) {
 }
 
 async function addArticle() {
-  
-
-const imageBase64List = await Promise.all(slikeFiles.value.map((file) => toBase64(file)))
+  const imageBase64List = await Promise.all(slikeFiles.value.map((file) => toBase64(file)))
   const newDoc = {
     title: newArticle.title,
     text: newArticle.text,
     category: newArticle.category,
-      author: user.uid,
+    author: user.uid,
     time: new Date().toLocaleTimeString('hr-HR', {
       hour: '2-digit',
-      minute: '2-digit'
+      minute: '2-digit',
     }),
     date: new Date().toLocaleDateString('hr-HR'),
     images: imageBase64List,
     comments: [],
     likes: [],
-    createdAt: serverTimestamp()
+    createdAt: serverTimestamp(),
   }
 
   const docRef = await addDoc(collection(db, 'articles'), newDoc)
@@ -367,9 +451,17 @@ function cancelNewArticle() {
 function handleSort(option) {
   activeSort.value = option
   if (option === 'date_desc') {
-    articles.value.sort((a, b) => new Date(b.date.split('.').reverse().join('-')) - new Date(a.date.split('.').reverse().join('-')))
+    articles.value.sort(
+      (a, b) =>
+        new Date(b.date.split('.').reverse().join('-')) -
+        new Date(a.date.split('.').reverse().join('-'))
+    )
   } else {
-    articles.value.sort((a, b) => new Date(a.date.split('.').reverse().join('-')) - new Date(b.date.split('.').reverse().join('-')))
+    articles.value.sort(
+      (a, b) =>
+        new Date(a.date.split('.').reverse().join('-')) -
+        new Date(b.date.split('.').reverse().join('-'))
+    )
   }
 }
 
@@ -415,10 +507,10 @@ async function deleteArticle(articleId) {
   try {
     // ukloni iz baze
     const articleRef = doc(db, 'articles', articleId)
-   await deleteDoc(articleRef)
+    await deleteDoc(articleRef)
 
     // ukloni iz lokalnog prikaza
-    articles.value = articles.value.filter(a => a.id !== articleId)
+    articles.value = articles.value.filter((a) => a.id !== articleId)
 
     alert('Članak je uspješno obrisan.')
   } catch (error) {

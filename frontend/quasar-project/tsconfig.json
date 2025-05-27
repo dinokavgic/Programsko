@@ -12,10 +12,10 @@
       "stores/*": ["src/stores/*"],
       "src/*": ["src/*"]
     },
-    "types": ["jest"],
+    "types": ["vitest/globals", "node", "vitest", "quasar"],
     "allowJs": true,
     "checkJs": false,
     "outDir": "./dist"
   },
-  "include": ["src", "tests"]
+  "include": ["src/**/*.ts", "src/**/*.vue", "src/tests/**/*.ts", "vitest.setup.ts"]
 }

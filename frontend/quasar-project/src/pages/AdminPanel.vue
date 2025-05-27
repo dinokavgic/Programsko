@@ -13,7 +13,7 @@
         align="left"
         narrow-indicator
       >
-        <q-tab name="dodajProizvod" label="Dodaj proizvod" />
+        <q-tab name="dodajProizvod" label="Dodaj proizvod" data-testid="tab-dodaj-proizvod" />
       </q-tabs>
 
       <q-separator />
@@ -21,7 +21,14 @@
       <q-tab-panels v-model="activeTab" animated>
         <q-tab-panel name="dodajProizvod">
           <q-form class="q-gutter-md">
-            <q-input filled v-model="naziv" label="Naziv" outlined dense />
+            <q-input
+              filled
+              v-model="naziv"
+              label="Naziv"
+              outlined
+              dense
+              data-testid="input-naziv"
+            />
 
             <div class="row items-end">
               <div class="col">
@@ -37,7 +44,14 @@
                 />
               </div>
               <div>
-                <q-btn dense flat color="primary" icon="add" @click="dodajKategoriju" />
+                <q-btn
+                  dense
+                  flat
+                  color="primary"
+                  icon="add"
+                  @click="dodajKategoriju"
+                  data-testid="dodaj-kategoriju"
+                />
               </div>
             </div>
             <q-input
@@ -48,6 +62,7 @@
               dense
               filled
               class="q-mt-sm"
+              data-testid="input-nova-kategorija"
             >
               <template v-slot:append>
                 <q-btn dense flat icon="check" @click="potvrdiKategoriju" />
@@ -55,11 +70,19 @@
               </template>
             </q-input>
 
-            <q-input filled v-model="opis" label="Opis" type="textarea" outlined dense />
+            <q-input
+              filled
+              v-model="opis"
+              label="Opis"
+              type="textarea"
+              outlined
+              dense
+              data-testid="input-opis"
+            />
 
             <q-input
               filled
-              v-model="cijena"
+              v-model.number="cijena"
               label="Cijena"
               type="number"
               prefix="€"
@@ -76,14 +99,14 @@
               multiple
               accept="image/*"
               :filter="filterSlike"
-              auto-upload="false"
+              :auto-upload="false"
               style="max-width: 300px"
               @added="dodajSlike"
             />
 
             <q-input
               filled
-              v-model="stanje"
+              v-model.number="stanje"
               label="Zaliha"
               type="number"
               step="1"
@@ -118,6 +141,7 @@ import { ref } from 'vue'
 
 const activeTab = ref('dodajProizvod')
 
+const slike = ref([])
 const naziv = ref('')
 const opis = ref('')
 const cijena = ref(null)
@@ -129,6 +153,7 @@ const dodavanjeKategorije = ref(false)
 const novaKategorija = ref('')
 const kategorije = ref(['Kave', 'Aparati', 'Filteri'])
 const kategorija = ref(null)
+
 const dodajKategoriju = () => {
   dodavanjeKategorije.value = true
   novaKategorija.value = ''
@@ -161,6 +186,8 @@ const spremiProizvod = async () => {
       !naziv.value ||
       !opis.value ||
       !cijena.value ||
+      cijena.value === null ||
+      isNaN(cijena.value) ||
       !kategorija.value ||
       stanje.value === null ||
       isNaN(stanjeInt)

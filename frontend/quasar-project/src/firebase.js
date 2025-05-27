@@ -7,7 +7,7 @@ const firebaseConfig = {
   apiKey: 'AIzaSyAAZDJlz2JeObL_OnU9RK-7631kUuHYfkk',
   authDomain: 'programskocoffe-8bfc7.firebaseapp.com',
   projectId: 'programskocoffe-8bfc7',
-  storageBucket: 'programskocoffe-8bfc7.appspot.com', // ← ISPRAVNO!
+  storageBucket: 'programskocoffe-8bfc7.appspot.com',
   messagingSenderId: '385769470014',
   appId: '1:385769470014:web:49ef8aa0f6b49f95f7f96f',
   measurementId: 'G-B07ZX2P970',

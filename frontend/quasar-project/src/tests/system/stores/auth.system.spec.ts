@@ -1,43 +1,44 @@
 import { setActivePinia, createPinia } from 'pinia'
-import { useAuthStore } from 'stores/auth'
+import { useAuthStore } from 'stores/auth.js'
+import { vi, describe, it, expect, beforeEach } from 'vitest'
 
-jest.mock('src/firebase', () => ({
+vi.mock('src/firebase', () => ({
   db: {},
   auth: {},
   storage: {},
 }))
 
-jest.mock('vue-router', () => ({
+vi.mock('vue-router', () => ({
   useRouter: () => ({
-    push: jest.fn(),
+    push: vi.fn(),
   }),
 }))
 
-jest.mock('firebase/auth', () => ({
-  signInWithEmailAndPassword: jest.fn(() =>
+vi.mock('firebase/auth', () => ({
+  signInWithEmailAndPassword: vi.fn(() =>
     Promise.resolve({ user: { uid: 'abc123', email: 'test@mail.com' } })
   ),
-  createUserWithEmailAndPassword: jest.fn(() =>
+  createUserWithEmailAndPassword: vi.fn(() =>
     Promise.resolve({ user: { uid: 'abc123', email: 'test@mail.com' } })
   ),
 }))
 
-// Mock Firebase firestore functions
-jest.mock('firebase/firestore', () => ({
-  doc: jest.fn(() => 'mockDocRef'),
-  getDoc: jest.fn(() =>
+vi.mock('firebase/firestore', () => ({
+  doc: vi.fn(() => 'mockDocRef'),
+  getDoc: vi.fn(() =>
     Promise.resolve({
       exists: () => true,
       data: () => ({ fullName: 'Test Korisnik', isAdmin: false }),
     })
   ),
-  setDoc: jest.fn(() => Promise.resolve()),
+  setDoc: vi.fn(() => Promise.resolve()),
 }))
 
-describe('Auth Store – System Test (Jest)', () => {
+describe('Auth Store – System Test (Vitest)', () => {
   beforeEach(() => {
     setActivePinia(createPinia())
     localStorage.clear()
+    vi.clearAllMocks()
   })
 
   it('loginWithEmail should set user state after successful login', async () => {
@@ -56,8 +57,9 @@ describe('Auth Store – System Test (Jest)', () => {
       fullName: 'Novi Korisnik',
     })
 
-    expect(store.user.email).toBe('test@mail.com') // Ovo može zbuniti jer registracija vraća email iz mocka (test@mail.com), a ne new@mail.com
-    expect(store.user.fullName).toBe('Test Korisnik') // Ovo dolazi iz mock `getDoc` firestore funkcije
+    // Napomena: mock vraća 'test@mail.com' iz createUserWithEmailAndPassword i podaci iz getDoc
+    expect(store.user.email).toBe('test@mail.com')
+    expect(store.user.fullName).toBe('Test Korisnik')
     expect(store.isLoggedIn).toBe(true)
   })
 })

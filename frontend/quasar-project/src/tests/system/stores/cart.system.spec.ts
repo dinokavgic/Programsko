@@ -1,31 +1,32 @@
 import { setActivePinia, createPinia } from 'pinia'
-import { useCartStore } from 'src/stores/cart.js'
+import { useCartStore } from 'src/stores/cart'
 import { getDoc, onSnapshot, doc } from 'firebase/firestore'
+import { vi, describe, it, expect, beforeEach, Mock } from 'vitest'
 
-jest.mock('firebase/firestore', () => ({
-  getFirestore: jest.fn(() => ({})),
-  doc: jest.fn((db, collection, id) => ({ id })),
-  getDoc: jest.fn(),
-  onSnapshot: jest.fn((docRef, callback) => {
+vi.mock('src/firebase', () => ({
+  db: {},
+  auth: {},
+  storage: {},
+}))
+
+vi.mock('firebase/firestore', () => ({
+  getFirestore: vi.fn(() => ({})),
+  doc: vi.fn((db, collection, id) => ({ id })),
+  getDoc: vi.fn(),
+  onSnapshot: vi.fn((docRef, callback) => {
     callback({
       exists: () => true,
       data: () => ({ inStock: 4 }),
     })
-
     return () => {}
   }),
-}))
-jest.mock('src/firebase', () => ({
-  db: {},
-  auth: {},
-  storage: {},
 }))
 
 describe('Cart Store System Tests', () => {
   beforeEach(() => {
     setActivePinia(createPinia())
     localStorage.clear()
-    jest.clearAllMocks()
+    vi.clearAllMocks()
   })
 
   it('should sync cart stock correctly', async () => {
@@ -34,8 +35,8 @@ describe('Cart Store System Tests', () => {
       { id: 'p1', price: 10, quantity: 5, inStock: 5 },
       { id: 'p2', price: 20, quantity: 3, inStock: 3 },
     ]
-    ;(doc as jest.Mock).mockImplementation((db, collection, id) => ({ id }))
-    ;(getDoc as jest.Mock).mockImplementation(async (docRef) => {
+    ;(doc as unknown as Mock).mockImplementation((db, collection, id) => ({ id }))
+    ;(getDoc as unknown as Mock).mockImplementation(async (docRef: any) => {
       if (docRef.id === 'p1') {
         return {
           exists: () => true,
@@ -79,13 +80,13 @@ describe('Cart Store System Tests', () => {
   it('should subscribe to stock changes and update cart', () => {
     const store = useCartStore()
     store.cartItems = [{ id: 'p1', price: 10, quantity: 2, inStock: 5 }]
-    ;(doc as jest.Mock).mockImplementation((db, collection, id) => ({ id }))
-    ;(onSnapshot as jest.Mock).mockImplementation((docRef, callback) => {
+    ;(doc as unknown as Mock).mockImplementation((db, collection, id) => ({ id }))
+    ;(onSnapshot as unknown as Mock).mockImplementation((docRef, callback) => {
       callback({
         exists: () => true,
         data: () => ({ inStock: 1 }),
       })
-      return jest.fn() // unsubscribe function
+      return vi.fn() // unsubscribe function
     })
 
     store.subscribeToCartStock()
@@ -97,13 +98,13 @@ describe('Cart Store System Tests', () => {
   it('should remove item if stock is zero in subscription', () => {
     const store = useCartStore()
     store.cartItems = [{ id: 'p1', price: 10, quantity: 2, inStock: 5 }]
-    ;(doc as jest.Mock).mockImplementation((db, collection, id) => ({ id }))
-    ;(onSnapshot as jest.Mock).mockImplementation((docRef, callback) => {
+    ;(doc as unknown as Mock).mockImplementation((db, collection, id) => ({ id }))
+    ;(onSnapshot as unknown as Mock).mockImplementation((docRef, callback) => {
       callback({
         exists: () => true,
         data: () => ({ inStock: 0 }),
       })
-      return jest.fn() // unsubscribe function
+      return vi.fn() // unsubscribe function
     })
 
     store.subscribeToCartStock()

@@ -1,6 +1,7 @@
 import { mount } from '@vue/test-utils'
 import { createRouter, createMemoryHistory, RouteRecordRaw } from 'vue-router'
 import { defineComponent } from 'vue'
+import { describe, it, expect } from 'vitest'
 
 const IndexPage = defineComponent({ template: '<div>Index Page</div>' })
 const LogIn = defineComponent({ template: '<div>Login Page</div>' })

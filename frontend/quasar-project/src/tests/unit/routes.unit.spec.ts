@@ -1,4 +1,4 @@
-import routes from 'src/router/routes.js'
+import routes from 'src/router/routes'
 
 describe('Router config - Unit', () => {
   it('sadrži početnu ("/") rutu s MainLayout komponentom', () => {

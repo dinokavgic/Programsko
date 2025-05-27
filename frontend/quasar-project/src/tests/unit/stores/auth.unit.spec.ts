@@ -1,5 +1,5 @@
 import { setActivePinia, createPinia } from 'pinia'
-import { useAuthStore } from 'stores/auth.js'
+import { useAuthStore } from 'src/stores/auth'
 
 describe('Auth Store – Unit Test', () => {
   beforeEach(() => {

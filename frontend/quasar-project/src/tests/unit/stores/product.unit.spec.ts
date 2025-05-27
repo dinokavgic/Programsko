@@ -1,11 +1,11 @@
 import { setActivePinia, createPinia } from 'pinia'
 import { useProductsStore } from 'src/stores/products'
 
+beforeEach(() => {
+  setActivePinia(createPinia())
+  localStorage.clear()
+})
 describe('Products Store Unit Tests', () => {
-  beforeEach(() => {
-    setActivePinia(createPinia())
-  })
-
   it('should update product in products array', () => {
     const store = useProductsStore()
     store.products = [{ id: 'p1', name: 'Test', price: 100 }]

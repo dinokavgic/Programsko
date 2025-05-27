@@ -1,30 +1,33 @@
 import { setActivePinia, createPinia } from 'pinia'
 import { useProductsStore } from 'src/stores/products'
 import { collection, onSnapshot, doc, updateDoc } from 'firebase/firestore'
+import { vi, describe, it, expect, beforeEach, Mock } from 'vitest'
 
-jest.mock('src/firebase', () => ({
+// Mock Firebase modula
+vi.mock('src/firebase', () => ({
   db: {},
   storage: {},
   auth: {},
 }))
-jest.mock('firebase/firestore', () => ({
-  collection: jest.fn(),
-  doc: jest.fn(),
-  onSnapshot: jest.fn(),
-  updateDoc: jest.fn(),
+
+// Mock funkcija Firestorea
+vi.mock('firebase/firestore', () => ({
+  collection: vi.fn(),
+  doc: vi.fn(),
+  onSnapshot: vi.fn(),
+  updateDoc: vi.fn(),
 }))
 
 describe('Products Store System Tests', () => {
   beforeEach(() => {
     setActivePinia(createPinia())
-    jest.clearAllMocks()
+    vi.clearAllMocks()
   })
 
   it('should subscribe and receive products from onSnapshot', async () => {
     const store = useProductsStore()
-    const mockCallback = jest.fn()
+    const mockCallback = vi.fn()
 
-    // Simuliraj firestore response
     const fakeDocs = [
       {
         id: 'p1',
@@ -40,14 +43,16 @@ describe('Products Store System Tests', () => {
     ]
 
     const mockQuerySnapshot = {
-      forEach: (fn: any) => fakeDocs.forEach((d) => fn(d)),
+      forEach: (fn: (doc: any) => void) => fakeDocs.forEach(fn),
     }
 
-    const mockUnsub = jest.fn()
-    ;(onSnapshot as jest.Mock).mockImplementation((_ref: any, cb: any) => {
-      cb(mockQuerySnapshot)
-      return mockUnsub
-    })
+    const mockUnsub = vi.fn()
+    ;(onSnapshot as unknown as Mock).mockImplementation(
+      (_ref: any, cb: (snapshot: any) => void) => {
+        cb(mockQuerySnapshot)
+        return mockUnsub
+      }
+    )
 
     const unsubscribe = await store.subscribeProducts(mockCallback)
 
@@ -72,7 +77,7 @@ describe('Products Store System Tests', () => {
     const fakeProduct = { id: 'p1', name: 'Updated', price: 99 }
 
     const mockDocRef = {}
-    ;(doc as jest.Mock).mockReturnValue(mockDocRef)
+    ;(doc as unknown as Mock).mockReturnValue(mockDocRef)
 
     await store.saveProductChanges(fakeProduct)
 
