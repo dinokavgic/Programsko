@@ -5,50 +5,26 @@
         <!-- Sidebar -->
         <div class="col-3">
           <q-card class="q-mb-md">
-            <q-card-section class="text-subtitle2">Kategorije</q-card-section>
-            <q-list bordered>
-              <q-item
-                clickable
-                v-ripple
-                @click="
-                  selectedCategory = ''
-                  page = 1
-                "
-              >
-                <q-item-section>Prikaži sve</q-item-section>
-              </q-item>
-              <q-item
-                clickable
-                v-ripple
-                @click="
-                  selectedCategory = 'Općenito'
-                  page = 1
-                "
-              >
-                <q-item-section>Općenito</q-item-section>
-              </q-item>
-              <q-item
-                clickable
-                v-ripple
-                @click="
-                  selectedCategory = 'Iskustva'
-                  page = 1
-                "
-              >
-                <q-item-section>Iskustva</q-item-section>
-              </q-item>
-              <q-item
-                clickable
-                v-ripple
-                @click="
-                  selectedCategory = 'Moji članci'
-                  page = 1
-                "
-              >
-                <q-item-section>Moji članci</q-item-section>
-              </q-item>
-            </q-list>
-          </q-card>
+  <q-card-section class="text-subtitle2">Kategorije</q-card-section>
+  <q-list bordered>
+    <q-item clickable v-ripple @click="selectedCategory = ''; page = 1">
+      <q-item-section>Prikaži sve</q-item-section>
+    </q-item>
+
+    <q-item clickable v-ripple @click="selectedCategory = 'Općenito'; page = 1">
+      <q-item-section>Općenito</q-item-section>
+    </q-item>
+
+    <q-item clickable v-ripple @click="selectedCategory = 'Iskustva'; page = 1">
+      <q-item-section>Iskustva</q-item-section>
+    </q-item>
+
+    <q-item clickable v-ripple @click="selectedCategory = 'Moji članci'; page = 1">
+      <q-item-section>Moji članci</q-item-section>
+    </q-item>
+  </q-list>
+</q-card>
+
 
           <q-card>
             <q-card-section class="text-subtitle2">Sortiraj</q-card-section>
