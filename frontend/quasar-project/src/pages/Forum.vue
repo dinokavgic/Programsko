@@ -45,7 +45,7 @@
             label="Novi članak"
             color="primary"
             class="q-mb-md"
-            @click="showNewArticle = true"
+             @click="handleNewArticleClick"
           />
 
           <q-card v-for="art in currentArticles" :key="art.id" class="q-mb-md">
@@ -206,6 +206,20 @@
           <div class="text-h6">Novi članak</div>
         </q-card-section>
 
+        <q-dialog v-model="showLoginPrompt">
+  <q-card>
+    <q-card-section class="text-h6">
+      Prijava potrebna
+    </q-card-section>
+    <q-card-section>
+      Molimo prijavite se za objavu članka.
+    </q-card-section>
+    <q-card-actions align="right">
+      <q-btn flat label="U redu" color="primary" v-close-popup />
+    </q-card-actions>
+  </q-card>
+</q-dialog>
+
         <q-card-section>
           <q-input v-model="newArticle.title" label="Naslov" filled class="q-mb-sm" />
           <q-input v-model="newArticle.text" label="Tekst" type="textarea" filled class="q-mb-sm" />
@@ -257,10 +271,10 @@ import {
 import { useAuthStore } from 'stores/auth'
 import { dodajBodKorisniku, oduzmiBodKorisniku } from 'src/bodovi'
 import { deleteDoc } from 'firebase/firestore'
+import { useRouter } from 'vue-router'
 
-function navigateToLogin() {
-  window.location.href = '/LogIn'
-}
+
+
 
 const page = ref(1)
 const bodovi = ref(0)
@@ -275,6 +289,8 @@ const editingComment = reactive({ articleId: null, index: null, text: '' })
 const authStore = useAuthStore()
 const user = authStore.user
 const slikeFiles = ref([])
+const router = useRouter()
+
 
 const newArticle = reactive({
   title: '',
@@ -296,6 +312,10 @@ const currentArticles = computed(() => {
 })
 
 const maxPages = computed(() => Math.ceil(filteredArticles.value.length / 3))
+
+function navigateToLogin() {
+    router.push('/LogIn')
+}
 
 function cancelEdit() {
   editingComment.articleId = null
@@ -440,6 +460,17 @@ function handleSort(option) {
     )
   }
 }
+
+const showLoginPrompt = ref(false)
+
+function handleNewArticleClick() {
+  if (!user?.uid) {
+   navigateToLogin()
+    } else {
+    showNewArticle.value = true
+  }
+}
+
 
 const dodajSlike = (files) => {
   slikeFiles.value.push(...files)
