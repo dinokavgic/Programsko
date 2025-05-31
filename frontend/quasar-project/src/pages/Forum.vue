@@ -64,7 +64,7 @@
                   class="q-mb-sm"
                 />
               </div>
-
+              <!-- Gumb za brisanje samo autor i admin -->
               <q-btn
                 v-if="user && (art.author === user.uid || user.adminStatus)"
                 dense
