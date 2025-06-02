@@ -57,7 +57,6 @@ describe('Auth Store – System Test (Vitest)', () => {
       fullName: 'Novi Korisnik',
     })
 
-    // Napomena: mock vraća 'test@mail.com' iz createUserWithEmailAndPassword i podaci iz getDoc
     expect(store.user.email).toBe('test@mail.com')
     expect(store.user.fullName).toBe('Test Korisnik')
     expect(store.isLoggedIn).toBe(true)

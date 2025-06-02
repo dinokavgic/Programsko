@@ -201,23 +201,6 @@ const sortedOrders = computed(() => {
   return [...orders.value].sort((a, b) => new Date(b.date) - new Date(a.date))
 })
 
-onMounted(async () => {
-  if (!user?.uid) return
-
-  const userDocRef = doc(db, 'users', user.uid)
-  const userSnap = await getDoc(userDocRef)
-
-  if (userSnap.exists()) {
-    const data = userSnap.data()
-    imePrezime.value = data.fullName || ''
-    telefon.value = data.telefon || ''
-    adresa.value = data.adresa || ''
-    mjesto.value = data.mjesto || ''
-    zip.value = data.zip || ''
-    bodovi.value = data.bodovi || 0
-  }
-})
-
 async function spremiProfil() {
   if (!user?.uid) return
 
@@ -225,10 +208,10 @@ async function spremiProfil() {
 
   try {
     await updateDoc(userDocRef, {
-      fullName: imePrezime.value,
-      telefon: telefon.value,
-      adresa: adresa.value,
-      mjesto: mjesto.value,
+      fullName: imePrezime.value.trim(),
+      telefon: telefon.value.trim(),
+      adresa: adresa.value.trim(),
+      mjesto: mjesto.value.trim(),
       zip: zip.value,
       bodovi: bodovi.value,
     })
@@ -316,6 +299,7 @@ onMounted(async () => {
     adresa.value = data.adresa || ''
     mjesto.value = data.mjesto || ''
     zip.value = data.zip || ''
+    bodovi.value = data.bodovi || 0
   }
 
   await fetchOrders()
