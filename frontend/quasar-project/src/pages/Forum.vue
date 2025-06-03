@@ -65,7 +65,7 @@
               </div>
               <!-- Gumb za brisanje samo autor i admin -->
               <q-btn
-                v-if="user && (art.author === user.uid || user.adminStatus)"
+                v-if="user && (art.author === user.uid || user.isAdmin)"
                 dense
                 flat
                 size="sm"
@@ -114,7 +114,8 @@
                 <div v-else>
                   <div>{{ comment.text }}</div>
                   <q-btn
-                    v-if="comment.uid === user?.uid || user.adminStatus"
+                    v-if="comment.uid === user?.uid || user.isAdmin"
+                    
                     dense
                     flat
                     size="sm"
@@ -122,7 +123,7 @@
                     @click="editComment(art.id, index, comment.text)"
                   />
                   <q-btn
-                    v-if="comment.uid === user?.uid || user.adminStatus"
+                    v-if="comment.uid === user?.uid || user.isAdmin"
                     dense
                     flat
                     size="sm"
