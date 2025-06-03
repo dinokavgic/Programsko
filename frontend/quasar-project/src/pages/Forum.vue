@@ -114,7 +114,7 @@
                 <div v-else>
                   <div>{{ comment.text }}</div>
                   <q-btn
-                    v-if="comment.uid === user?.uid"
+                    v-if="comment.uid === user?.uid || user.adminStatus"
                     dense
                     flat
                     size="sm"
@@ -122,7 +122,7 @@
                     @click="editComment(art.id, index, comment.text)"
                   />
                   <q-btn
-                    v-if="comment.uid === user?.uid"
+                    v-if="comment.uid === user?.uid || user.adminStatus"
                     dense
                     flat
                     size="sm"
