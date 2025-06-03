@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import { collection, doc, onSnapshot, updateDoc } from 'firebase/firestore'
+import { collection, doc, onSnapshot, updateDoc, deleteDoc } from 'firebase/firestore'
 import { db } from 'src/firebase'
 
 export const useProductsStore = defineStore('products', () => {
@@ -90,6 +90,15 @@ export const useProductsStore = defineStore('products', () => {
     }
   }
 
+  async function deleteProductById(id) {
+    try {
+      await deleteDoc(doc(db, 'products', id))
+    } catch (err) {
+      console.error('Greška pri brisanju proizvoda:', err)
+      throw err
+    }
+  }
+
   return {
     products,
     subscribeProducts,
@@ -98,5 +107,6 @@ export const useProductsStore = defineStore('products', () => {
     isLoading,
     subscribeProductById,
     saveProductChanges,
+    deleteProductById,
   }
 })

@@ -5,7 +5,10 @@
   </div>
   <div v-else class="bg-grey-2" style="min-height: 93vh; display: grid; place-items: center">
     <div class="" style="max-width: 60%; width: 100%">
-      <q-card class="bg-grey-1 q-pa-md q-rounded-lg shadow-2 animate__animated animate__fadeInUp">
+      <q-card
+        v-if="product"
+        class="bg-grey-1 q-pa-md q-rounded-lg shadow-2 animate__animated animate__fadeInUp"
+      >
         <div class="row q-col-gutter-md">
           <div class="col-10 col-md-6">
             <q-carousel
@@ -107,8 +110,11 @@
           </div>
         </div>
       </q-card>
+      <div v-else>
+        <q-banner class="bg-red text-white"> Proizvod više nije dostupan. </q-banner>
+      </div>
       <q-card
-        v-if="auth.isAdmin"
+        v-if="auth.isAdmin && product"
         class="q-mt-md bg-grey-1 q-pa-md q-rounded-lg shadow-1 flex-center animate__animated animate__fadeInUp"
       >
         <div v-if="editing" class="row q-gutter-sm justify-end">
@@ -131,6 +137,7 @@ import { useCartStore } from '../stores/cart'
 import { useProductsStore } from '../stores/products'
 import AddToCartDialog from 'components/AddToCartDialog.vue'
 import { useAuthStore } from '../stores/auth'
+import { useRouter } from 'vue-router'
 
 const route = useRoute()
 const productId = route.params.id
@@ -211,6 +218,19 @@ async function saveChanges() {
     editing.value = false
   } catch (error) {
     console.error('Spremanje nije uspjelo:', error)
+  }
+}
+const router = useRouter()
+async function deleteProduct() {
+  const confirmed = confirm('Jeste li sigurni da želite obrisati ovaj proizvod?')
+  if (!confirmed) return
+  const id = product.value?.id
+  try {
+    await productsStore.deleteProductById(id)
+    cartStore.removeItem(id)
+    await router.push('/')
+  } catch (error) {
+    console.error('Greška pri brisanju proizvoda:', error)
   }
 }
 
