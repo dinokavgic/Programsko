@@ -202,7 +202,7 @@
     </div>
 
     <!-- Dialog za novi članak -->
-    <q-dialog v-model="showNewArticle">
+<q-dialog v-model="showNewArticle">
       <q-card style="min-width: 400px">
         <q-card-section>
           <div class="text-h6">Novi članak</div>
