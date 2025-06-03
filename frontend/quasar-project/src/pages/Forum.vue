@@ -115,6 +115,7 @@
                 <div v-else>
                   <div>{{ comment.text }}</div>
                   <q-btn
+                    v-if="comment.uid === user?.uid"
                     dense
                     flat
                     size="sm"
@@ -122,6 +123,7 @@
                     @click="editComment(art.id, index, comment.text)"
                   />
                   <q-btn
+                    v-if="comment.uid === user?.uid"
                     dense
                     flat
                     size="sm"
@@ -323,24 +325,55 @@ function cancelEdit() {
   editingComment.text = ''
 }
 
+
 function editComment(articleId, index, text) {
   editingComment.articleId = articleId
   editingComment.index = index
   editingComment.text = text
 }
 
-function saveComment(articleId, index) {
+async function saveComment(articleId, index) {
   const article = articles.value.find((a) => a.id === articleId)
   if (!article || index < 0 || index >= article.comments.length) return
+
+  // 1. Ažuriraj tekst lokalno
   article.comments[index].text = editingComment.text
-  cancelEdit()
+
+  // 2. Spremi cijeli niz komentara u bazu
+  const articleRef = doc(db, 'articles', articleId)
+  try {
+    await updateDoc(articleRef, {
+      comments: article.comments
+    })
+    cancelEdit()
+  } catch (error) {
+    console.error('Greška pri spremanju komentara:', error)
+    alert('Spremanje komentara nije uspjelo.')
+  }
 }
 
-function deleteComment(articleId, index) {
+
+async function deleteComment(articleId, index) {
   const article = articles.value.find((a) => a.id === articleId)
   if (!article || index < 0 || index >= article.comments.length) return
+
+  const commentToDelete = article.comments[index]
+
+  // Makni lokalno
   article.comments.splice(index, 1)
-  bodovi.value--
+
+  // Ažuriraj bazu
+  const articleRef = doc(db, 'articles', articleId)
+  try {
+    await updateDoc(articleRef, {
+      comments: article.comments,
+    })
+
+    bodovi.value--
+    await oduzmiBodKorisniku(commentToDelete.uid)
+  } catch (err) {
+    console.error('Greška pri brisanju komentara:', err)
+  }
 }
 
 async function toggleLike(article) {
