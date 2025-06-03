@@ -13,6 +13,14 @@ Coffee Webshop je aplikacija za online prodaju kave, razvijena koristeći Vue.js
 Ovaj projekt je razvijen od strane Dina Kavgića i Luke Pešića.
 Za bilo kakva pitanja ili sugestije, slobodno se obratite putem email-a.
 
+## Instalacije za pokretanje
+
+npm install pinia
+npm install vue-router
+npm install quasar
+npm install animate.css
+npm install firebase
+
 ## Instalacije za testove:
 
 npm install -D vitest

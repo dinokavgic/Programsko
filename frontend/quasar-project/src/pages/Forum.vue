@@ -114,7 +114,7 @@
                 <div v-else>
                   <div>{{ comment.text }}</div>
                   <q-btn
-                    v-if="comment.uid === user?.uid || user.isAdmin"
+                    v-if="comment.uid === user?.uid || isAdmin"
                     dense
                     flat
                     size="sm"
@@ -122,7 +122,7 @@
                     @click="editComment(art.id, index, comment.text)"
                   />
                   <q-btn
-                    v-if="comment.uid === user?.uid || user.isAdmin"
+                    v-if="comment.uid === user?.uid || isAdmin"
                     dense
                     flat
                     size="sm"
@@ -520,6 +520,7 @@ onMounted(async () => {
   articles.value = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }))
 })
 const isAdmin = authStore.user?.isAdmin === true
+
 async function deleteArticle(articleId) {
   const article = articles.value.find((a) => a.id === articleId)
   if (!article) return
