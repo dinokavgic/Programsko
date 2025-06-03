@@ -65,7 +65,7 @@
               </div>
               <!-- Gumb za brisanje samo autor i admin -->
               <q-btn
-                v-if="user && (art.author === user.uid || user.isAdmin)"
+                v-if="user && (art.author === user.uid || isAdmin)"
                 dense
                 flat
                 size="sm"
@@ -114,8 +114,7 @@
                 <div v-else>
                   <div>{{ comment.text }}</div>
                   <q-btn
-                    v-if="comment.uid === user?.uid || user.isAdmin"
-                    
+                    v-if="comment.uid === user?.uid || isAdmin"
                     dense
                     flat
                     size="sm"
@@ -123,7 +122,7 @@
                     @click="editComment(art.id, index, comment.text)"
                   />
                   <q-btn
-                    v-if="comment.uid === user?.uid || user.isAdmin"
+                    v-if="comment.uid === user?.uid || isAdmin"
                     dense
                     flat
                     size="sm"
@@ -520,12 +519,12 @@ onMounted(async () => {
   const snapshot = await getDocs(q)
   articles.value = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }))
 })
+const isAdmin = authStore.user?.isAdmin === true
 async function deleteArticle(articleId) {
   const article = articles.value.find((a) => a.id === articleId)
   if (!article) return
 
   const isAuthor = article.author === user?.uid
-  const isAdmin = authStore.user?.isAdmin === true
 
   if (!isAuthor && !isAdmin) {
     alert('Samo autor članka ili administrator može obrisati članak.')
