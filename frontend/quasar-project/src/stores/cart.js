@@ -95,6 +95,11 @@ export const useCartStore = defineStore('cart', () => {
     cartItems.value.forEach((item) => {
       const docRef = doc(db, 'products', item.id)
       const unsubscribe = onSnapshot(docRef, (snapshot) => {
+        if (!snapshot.exists()) {
+          removeItem(item.id)
+
+          return
+        }
         if (snapshot.exists()) {
           const data = snapshot.data()
           const newStock = Number(data.inStock) || 0

@@ -5,26 +5,25 @@
         <!-- Sidebar -->
         <div class="col-3">
           <q-card class="q-mb-md">
-  <q-card-section class="text-subtitle2">Kategorije</q-card-section>
-  <q-list bordered>
-    <q-item clickable v-ripple @click="selectedCategory = ''; page = 1">
-      <q-item-section>Prikaži sve</q-item-section>
-    </q-item>
+            <q-card-section class="text-subtitle2">Kategorije</q-card-section>
+            <q-list bordered>
+              <q-item clickable v-ripple @click="((selectedCategory = ''), (page = 1))">
+                <q-item-section>Prikaži sve</q-item-section>
+              </q-item>
 
-    <q-item clickable v-ripple @click="selectedCategory = 'Općenito'; page = 1">
-      <q-item-section>Općenito</q-item-section>
-    </q-item>
+              <q-item clickable v-ripple @click="((selectedCategory = 'Općenito'), (page = 1))">
+                <q-item-section>Općenito</q-item-section>
+              </q-item>
 
-    <q-item clickable v-ripple @click="selectedCategory = 'Iskustva'; page = 1">
-      <q-item-section>Iskustva</q-item-section>
-    </q-item>
+              <q-item clickable v-ripple @click="((selectedCategory = 'Iskustva'), (page = 1))">
+                <q-item-section>Iskustva</q-item-section>
+              </q-item>
 
-    <q-item clickable v-ripple @click="selectedCategory = 'Moji članci'; page = 1">
-      <q-item-section>Moji članci</q-item-section>
-    </q-item>
-  </q-list>
-</q-card>
-
+              <q-item clickable v-ripple @click="((selectedCategory = 'Moji članci'), (page = 1))">
+                <q-item-section>Moji članci</q-item-section>
+              </q-item>
+            </q-list>
+          </q-card>
 
           <q-card>
             <q-card-section class="text-subtitle2">Sortiraj</q-card-section>
@@ -45,7 +44,7 @@
             label="Novi članak"
             color="primary"
             class="q-mb-md"
-             @click="handleNewArticleClick"
+            @click="handleNewArticleClick"
           />
 
           <q-card v-for="art in currentArticles" :key="art.id" class="q-mb-md">
@@ -207,18 +206,14 @@
         </q-card-section>
 
         <q-dialog v-model="showLoginPrompt">
-  <q-card>
-    <q-card-section class="text-h6">
-      Prijava potrebna
-    </q-card-section>
-    <q-card-section>
-      Molimo prijavite se za objavu članka.
-    </q-card-section>
-    <q-card-actions align="right">
-      <q-btn flat label="U redu" color="primary" v-close-popup />
-    </q-card-actions>
-  </q-card>
-</q-dialog>
+          <q-card>
+            <q-card-section class="text-h6"> Prijava potrebna </q-card-section>
+            <q-card-section> Molimo prijavite se za objavu članka. </q-card-section>
+            <q-card-actions align="right">
+              <q-btn flat label="U redu" color="primary" v-close-popup />
+            </q-card-actions>
+          </q-card>
+        </q-dialog>
 
         <q-card-section>
           <q-input v-model="newArticle.title" label="Naslov" filled class="q-mb-sm" />
@@ -273,9 +268,6 @@ import { dodajBodKorisniku, oduzmiBodKorisniku } from 'src/bodovi'
 import { deleteDoc } from 'firebase/firestore'
 import { useRouter } from 'vue-router'
 
-
-
-
 const page = ref(1)
 const bodovi = ref(0)
 const showNewArticle = ref(false)
@@ -290,7 +282,6 @@ const authStore = useAuthStore()
 const user = authStore.user
 const slikeFiles = ref([])
 const router = useRouter()
-
 
 const newArticle = reactive({
   title: '',
@@ -314,7 +305,7 @@ const currentArticles = computed(() => {
 const maxPages = computed(() => Math.ceil(filteredArticles.value.length / 3))
 
 function navigateToLogin() {
-    router.push('/LogIn')
+  router.push('/LogIn')
 }
 
 function cancelEdit() {
@@ -465,12 +456,11 @@ const showLoginPrompt = ref(false)
 
 function handleNewArticleClick() {
   if (!user?.uid) {
-   navigateToLogin()
-    } else {
+    navigateToLogin()
+  } else {
     showNewArticle.value = true
   }
 }
-
 
 const dodajSlike = (files) => {
   slikeFiles.value.push(...files)
