@@ -3,7 +3,11 @@ const routes = [
     path: '/',
     component: () => import('layouts/MainLayout.vue'),
     children: [
-      { path: '', component: () => import('pages/IndexPage.vue') },
+      {
+        path: '',
+        component: () => import('pages/IndexPage.vue'),
+        meta: { title: 'Home - CoffeeShop' },
+      },
       { path: 'LogIn', component: () => import('pages/LogIn.vue'), meta: { guestOnly: true } },
       {
         path: 'Register',

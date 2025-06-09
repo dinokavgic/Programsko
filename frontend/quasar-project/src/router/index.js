@@ -34,6 +34,10 @@ export default defineRouter(function (/* { store, ssrContext } */) {
     history: createHistory(process.env.VUE_ROUTER_BASE),
   })
 
+  Router.afterEach((to) => {
+    document.title = to.meta.title || 'CoffeeShop'
+  })
+
   Router.beforeEach((to, from, next) => {
     const auth = useAuthStore()
 
