@@ -65,7 +65,7 @@
               </div>
               <!-- Gumb za brisanje samo autor i admin -->
               <q-btn
-                v-if="user && (art.author === user.uid || user.isAdmin)"
+                v-if="user && (art.author === user.uid || isAdmin)"
                 dense
                 flat
                 size="sm"
@@ -114,8 +114,7 @@
                 <div v-else>
                   <div>{{ comment.text }}</div>
                   <q-btn
-                    v-if="user && (comment.uid === user.uid || user.isAdmin)"
-                    
+                    v-if="comment.uid === user?.uid || isAdmin"
                     dense
                     flat
                     size="sm"
@@ -123,7 +122,7 @@
                     @click="editComment(art.id, index, comment.text)"
                   />
                   <q-btn
-                   v-if="user && (comment.uid === user.uid || user.isAdmin)"
+                    v-if="comment.uid === user?.uid || isAdmin"
                     dense
                     flat
                     size="sm"
@@ -202,7 +201,7 @@
     </div>
 
     <!-- Dialog za novi članak -->
-<q-dialog v-model="showNewArticle">
+    <q-dialog v-model="showNewArticle">
       <q-card style="min-width: 400px">
         <q-card-section>
           <div class="text-h6">Novi članak</div>
@@ -317,7 +316,6 @@ function cancelEdit() {
   editingComment.text = ''
 }
 
-
 function editComment(articleId, index, text) {
   editingComment.articleId = articleId
   editingComment.index = index
@@ -335,7 +333,7 @@ async function saveComment(articleId, index) {
   const articleRef = doc(db, 'articles', articleId)
   try {
     await updateDoc(articleRef, {
-      comments: article.comments
+      comments: article.comments,
     })
     cancelEdit()
   } catch (error) {
@@ -343,7 +341,6 @@ async function saveComment(articleId, index) {
     alert('Spremanje komentara nije uspjelo.')
   }
 }
-
 
 async function deleteComment(articleId, index) {
   const article = articles.value.find((a) => a.id === articleId)
@@ -522,12 +519,13 @@ onMounted(async () => {
   const snapshot = await getDocs(q)
   articles.value = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }))
 })
+const isAdmin = authStore.user?.isAdmin === true
+
 async function deleteArticle(articleId) {
   const article = articles.value.find((a) => a.id === articleId)
   if (!article) return
 
   const isAuthor = article.author === user?.uid
-  const isAdmin = authStore.user?.adminStatus === true
 
   if (!isAuthor && !isAdmin) {
     alert('Samo autor članka ili administrator može obrisati članak.')

@@ -3,14 +3,12 @@ import { useProductsStore } from 'src/stores/products'
 import { collection, onSnapshot, doc, updateDoc } from 'firebase/firestore'
 import { vi, describe, it, expect, beforeEach, Mock } from 'vitest'
 
-// Mock Firebase modula
 vi.mock('src/firebase', () => ({
   db: {},
   storage: {},
   auth: {},
 }))
 
-// Mock funkcija Firestorea
 vi.mock('firebase/firestore', () => ({
   collection: vi.fn(),
   doc: vi.fn(),

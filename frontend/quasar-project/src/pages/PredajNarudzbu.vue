@@ -256,6 +256,7 @@ const showSuccessDialog = ref(false)
 const isOrderSuccess = ref(false)
 
 const useMyAddress = ref(false)
+//lokalni podaci
 const address = reactive({
   fullName: '',
   adresa: '',
@@ -264,6 +265,7 @@ const address = reactive({
   telefon: '',
 })
 
+//firebase
 const userData = ref({
   fullName: '',
   telefon: '',
