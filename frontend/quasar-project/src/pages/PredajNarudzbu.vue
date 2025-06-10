@@ -253,6 +253,7 @@ const authStore = useAuthStore()
 const user = authStore.user
 const router = useRouter()
 const showSuccessDialog = ref(false)
+const isOrderSuccess = ref(false)
 
 const useMyAddress = ref(false)
 const address = reactive({
@@ -397,7 +398,9 @@ async function submitOrder() {
         console.error(`Greška pri ažuriranju zalihe za proizvod ${item.id}:`, err)
       }
     }
+    isOrderSuccess.value = true
     showSuccessDialog.value = true
+
   } catch (error) {
     console.error('Greška pri spremanju narudžbe:', error)
     alert('Došlo je do pogreške. Pokušajte ponovno.')
@@ -406,6 +409,7 @@ async function submitOrder() {
 
 function handleDialogClose() {
   cartStore.clearCart()
+  isOrderSuccess.value = false
   router.push('/')
 }
 
@@ -450,7 +454,7 @@ watch(useMyAddress, (val) => {
 })
 
 watch(cartItems, (newItems) => {
-  if (newItems.length === 0) {
+  if (newItems.length === 0 && !isOrderSuccess.value) {
     alert('Košarica je prazna. Preusmjeravamo vas na početnu stranicu.')
     router.push('/')
   }
